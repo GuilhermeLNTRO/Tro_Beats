@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TROBeats - Cadastro</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <h1>TROBeats</h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/catalogo">Catálogo</a></li>
+                    <li><a href="/perfil">Perfil</a></li>
+                    <li><a href="/carrinho">Carrinho</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="search-bar">
+                    <input type="text" placeholder="Procurar Trap ou Drill ou Juice Wrld...">
+                    <button aria-label="Pesquisar"><i class="fas fa-search"></i></button>
+                </div>
+                <a href="/vender" class="btn btn-primary">Começar a Vender</a>
+                <a href="/register" class="btn btn-secondary">Cadastre-se</a> <a href="/login" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
+                <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content form-page">
+        <section class="register-section section-padding">
+            <div class="container form-container">
+                <h2>Crie sua Conta TROBeats</h2>
+
+                <% if (messages.error) { %>
+                    <div class="alert error-message">
+                        <%= messages.error %>
+                    </div>
+                <% } %>
+                <% if (messages.success) { %>
+                    <div class="alert success-message">
+                        <%= messages.success %>
+                    </div>
+                <% } %>
+
+
+                <form action="/register" method="POST" class="register-form">
+                    <div class="form-group">
+                        <label for="username">Nome de Usuário:</label>
+                        <input type="text" id="username" name="username" placeholder="Seu nome de usuário" required value="<%= typeof formData !== 'undefined' ? formData.username : '' %>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" placeholder="seuemail@exemplo.com" required value="<%= typeof formData !== 'undefined' ? formData.email : '' %>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Senha:</label>
+                        <input type="password" id="password" name="password" placeholder="Mínimo 6 caracteres" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password">Confirme a Senha:</label>
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirme sua senha" required>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="is_beatmaker" name="is_beatmaker" <%= typeof formData !== 'undefined' && formData.is_beatmaker === 'on' ? 'checked' : '' %>>
+                        <label for="is_beatmaker">Eu sou um Beatmaker</label>
+                    </div>
+
+                    <div id="beatmaker-fields" class="beatmaker-fields-hidden">
+                        <div class="form-group">
+                            <label for="producer_name">Nome Artístico (Produtor):</label>
+                            <input type="text" id="producer_name" name="producer_name" placeholder="Nome do seu projeto musical" value="<%= typeof formData !== 'undefined' ? formData.producer_name : '' %>">
+                        </div>
+                        <div class="form-group">
+                            <label for="bio">Biografia Curta (opcional):</label>
+                            <textarea id="bio" name="bio" rows="4" placeholder="Fale um pouco sobre você e seu som..."><%= typeof formData !== 'undefined' ? formData.bio : '' %></textarea>
+                        </div>
+                        </div>
+
+                    <button type="submit" class="btn btn-primary btn-full-width">Cadastrar</button>
+
+                    <p class="form-footer-text">Já tem uma conta? <a href="/login">Faça login aqui!</a></p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 TROBeats. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="/js/register.js"></script> </body>
+</html>

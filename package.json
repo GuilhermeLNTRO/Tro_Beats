@@ -1,0 +1,30 @@
+{
+  "name": "trobeats",
+  "version": "1.0.0",
+  "description": "Plataforma web para comercialização e personalização de beats musicais para a The Real Ones produtora musical.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "express",
+    "nodejs",
+    "beats",
+    "musica",
+    "plataforma",
+    "web",
+    "ejs",
+    "trobeats"
+  ],
+  "author": "Guilherme Cezar Pinto Batista e Luis Fernando Ricarte Simião",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "express": "^4.19.2",
+    "trobeats": "file:"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
