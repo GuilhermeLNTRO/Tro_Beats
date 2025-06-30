@@ -1171,3 +1171,137 @@ h2 {
         padding: 20px;
     }
 }
+
+/* --- Estilos para a Página de Perfil --- */
+.profile-page .profile-section {
+    background-color: #0d0d0d; /* Fundo escuro como o header/form */
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-gray);
+    padding: 30px;
+    text-align: center; /* Centraliza o conteúdo geral do perfil */
+}
+
+.profile-container {
+    max-width: 600px; /* Largura máxima para o conteúdo do perfil */
+    margin: 0 auto;
+}
+
+.profile-page h2 {
+    color: var(--primary-purple);
+    margin-bottom: 30px;
+    font-size: 32px;
+}
+
+.profile-header {
+    margin-bottom: 30px;
+}
+
+.profile-pic {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%; /* Imagem de perfil redonda */
+    object-fit: cover;
+    border: 3px solid var(--secondary-purple); /* Borda roxa destacada */
+    margin-bottom: 20px;
+    display: block; /* Para centralizar com margin auto */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.profile-header h3 {
+    margin: 0 0 5px 0;
+    font-size: 28px;
+    color: var(--text-light);
+}
+
+.profile-header .user-email {
+    color: #bbb;
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.profile-header .producer-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-purple);
+    margin-top: 5px;
+}
+
+.profile-details {
+    background-color: #111; /* Fundo ligeiramente mais claro para os detalhes */
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid var(--border-gray);
+    margin-bottom: 30px;
+    text-align: left; /* Alinha o texto da biografia à esquerda */
+}
+
+.profile-details h4 {
+    color: var(--secondary-purple);
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+
+.profile-details p {
+    color: #ccc;
+    line-height: 1.8;
+}
+
+.profile-actions {
+    display: flex;
+    justify-content: center; /* Centraliza os botões */
+    gap: 15px; /* Espaçamento entre os botões */
+    flex-wrap: wrap; /* Permite que os botões quebrem a linha */
+}
+
+/* Reutilizando os estilos de botão que você já tem */
+.profile-actions .btn-danger { /* Estilo específico para o botão "Sair" */
+    background-color: var(--alert-error);
+    color: var(--text-light);
+    border: none;
+}
+
+.profile-actions .btn-danger:hover {
+    background-color: #a02c37;
+}
+
+/* --- Media Queries para Responsividade (incluído para consistência) --- */
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 0 15px; /* Ajusta padding em telas menores */
+    }
+
+    .profile-page h2 {
+        font-size: 28px;
+    }
+
+    .profile-pic {
+        width: 120px;
+        height: 120px;
+    }
+
+    .profile-actions {
+        flex-direction: column; /* Botões empilham em telas menores */
+        align-items: center;
+    }
+
+    .profile-actions .btn {
+        width: 100%; /* Botões ocupam a largura total */
+        max-width: 250px; /* Limita a largura para não ficar muito grande */
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-page h2 {
+        font-size: 24px;
+    }
+
+    .profile-container {
+        padding: 0 10px;
+    }
+    
+    .profile-details {
+        padding: 20px;
+    }
+}

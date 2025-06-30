@@ -3,12 +3,13 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// --- Configurações do Express ---
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 
+// --- Dados de Exemplo (Simulação de um Banco de Dados) ---
 const trendingBeatsData = [
     { id: 1, title: 'Vision | 21savage x N...', artist: 'nohookz', price: '25.00', cover: '/img/beat1-cover.jpg', featured: false },
     { id: 2, title: 'Ready | Humho x N...', artist: 'BIYO', price: '24.95', cover: '/img/beat2-cover.jpg', featured: true },
@@ -30,6 +31,19 @@ const cartItemsData = [
     { id: 103, title: 'Hard Drill Beat', artist: 'DrillKing', price: 34.99, cover: '/img/cart3.jpg', quantity: 1 }
 ];
 
+// Dados de usuário de exemplo para o perfil (simulação)
+const userData = {
+    username: 'UsuarioTROBeats',
+    email: 'usuario@exemplo.com',
+    profilePic: '/img/default-profile.png',
+    isBeatmaker: true,
+    producerName: 'BeatMaker PRO',
+    bio: 'Produtor musical apaixonado por criar batidas de Trap e Drill. Sempre buscando novos sons e inspirações.'
+};
+
+// --- Rotas da Aplicação ---
+
+// Rota para a Página Home
 app.get('/', (req, res) => {
     res.render('index', {
         trendingBeats: trendingBeatsData,
@@ -37,13 +51,16 @@ app.get('/', (req, res) => {
     });
 });
 
+// --- Rotas de Autenticação e Cadastro ---
+
+// Rota GET para Cadastro (Exibir Formulário)
 app.get('/register', (req, res) => {
     res.render('register', { messages: {} });
 });
 
+// Rota POST para Cadastro (Processar Formulário)
 app.post('/register', (req, res) => {
     const { username, email, password, confirm_password, is_beatmaker, producer_name, bio } = req.body;
-
     let errors = {};
 
     if (!username || !email || !password || !confirm_password) {
@@ -68,41 +85,55 @@ app.post('/register', (req, res) => {
         bio: bio || 'N/A'
     });
 
+    // Após cadastro bem-sucedido, redireciona para a página de login
     res.render('login', { messages: { success: 'Cadastro realizado com sucesso! Faça login para continuar.' } });
 });
 
+// Rota GET para Login (Exibir Formulário)
 app.get('/login', (req, res) => {
     res.render('login', { messages: {} });
 });
 
+// Rota POST para Login (Processar Formulário)
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
+    // Simulação de login: Se as credenciais forem corretas, redireciona para o perfil.
     if (email === 'teste@exemplo.com' && password === '123456') {
-        console.log('Login bem-sucedido (simulação)!');
-        res.render('login', { messages: { success: 'Login bem-sucedido! Bem-vindo(a).' } });
+        console.log('Login bem-sucedido (simulação)! Redirecionando para o perfil...');
+        res.redirect('/perfil'); // Redireciona para a página de perfil
     } else {
         console.log('Login falhou (simulação)!');
         res.render('login', { messages: { error: 'Email ou senha inválidos.' }, formData: { email } });
     }
 });
 
+// --- Rotas Principais da Aplicação ---
+
+// Rota para a Página de Catálogo
 app.get('/catalogo', (req, res) => {
     res.send('Página de Catálogo (a ser implementada)');
 });
 
+// Rota para a Página de Perfil (CORRIGIDA)
 app.get('/perfil', (req, res) => {
-    res.send('Página de Perfil (a ser implementada)');
+    // Em um app real, aqui você verificaria se o usuário está logado
+    // e buscaria os dados REAIS dele do banco de dados.
+    // Por enquanto, usamos os dados de exemplo definidos acima.
+    res.render('perfil', { user: userData });
 });
 
+// Rota para a Página de Carrinho de Compras
 app.get('/carrinho', (req, res) => {
     res.render('cart', { cartItems: cartItemsData });
 });
 
+// Rota para a Página 'Começar a Vender'
 app.get('/vender', (req, res) => {
     res.send('Página Começar a Vender (a ser implementada)');
 });
 
+// --- Inicialização do Servidor ---
 app.listen(PORT, () => {
     console.log(`Servidor TROBeats rodando em http://localhost:${PORT}`);
 });

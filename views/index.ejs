@@ -9,29 +9,22 @@
 </head>
 <body>
     <header class="header">
-        <div class="container header-content">
-            <div class="logo">
-                <h1>TROBeats</h1>
-            </div>
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/catalogo">Catálogo</a></li>
-                    <li><a href="/perfil">Perfil</a></li>
-                    <li><a href="/views/carrinho.ejs">Carrinho</a></li>
-                </ul>
-            </nav>
-            <div class="header-actions">
-                <div class="search-bar">
-                    <input type="text" placeholder="Procurar Trap ou Drill ou Juice Wrld...">
-                    <button aria-label="Pesquisar"><i class="fas fa-search"></i></button>
-                </div>
-                <a href="/vender" class="btn btn-primary">Começar a Vender</a>
-                <a href="/register" class="btn btn-secondary">Cadastre-se</a> <a href="/login" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
-                <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
-            </div>
+    <div class="container header-content">
+        <div class="logo">
+            <h1>TROBeats</h1>
         </div>
-    </header>
+        <div class="header-actions">
+            <div class="search-bar">
+                <input type="text" placeholder="Procurar Trap ou Drill ou Juice Wrld...">
+                <button aria-label="Pesquisar"><i class="fas fa-search"></i></button>
+            </div>
+            <a href="/vender" class="btn btn-primary">Começar a Vender</a>
+            <a href="/register" class="btn btn-secondary">Cadastre-se</a>
+            <a href="/login" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
+            <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
+        </div>
+    </div>
+</header>
 
     <main class="main-content">
         <section class="trending-beats section-padding">
@@ -88,3 +81,4 @@
 
     <script src="/js/script.js"></script>
 </body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TROBeats - Home</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <h1>TROBeats</h1>
+            </div>
+            <div class="header-actions">
+                <div class="search-bar">
+                    <input type="text" placeholder="Procurar Trap ou Drill ou Juice Wrld...">
+                    <button aria-label="Pesquisar"><i class="fas fa-search"></i></button>
+                </div>
+                <a href="/vender" class="btn btn-primary">Começar a Vender</a>
+                <a href="/register" class="btn btn-secondary">Cadastre-se</a>
+                <a href="/login" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
+                <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content profile-page">
+        <section class="profile-section section-padding">
+            <div class="container profile-container">
+                <h2>Meu Perfil</h2>
+
+                <div class="profile-header">
+                    <img src="<%= user.profilePic || '/img/default-profile.png' %>" alt="Foto de Perfil de <%= user.username %>" class="profile-pic">
+                    <h3><%= user.username %></h3>
+                    <p class="user-email"><%= user.email %></p>
+                    <% if (user.isBeatmaker) { %>
+                        <p class="producer-name"><%= user.producerName %></p>
+                    <% } %>
+                </div>
+
+                <div class="profile-details">
+                    <h4>Sobre Mim</h4>
+                    <p><%= user.bio || 'Nenhuma biografia disponível.' %></p>
+                </div>
+
+                <div class="profile-actions">
+                    <% if (user.isBeatmaker) { %>
+                        <a href="/meus-beats" class="btn btn-secondary">Meus Beats</a>
+                    <% } %>
+                    <a href="/minhas-compras" class="btn btn-secondary">Minhas Compras</a>
+                    <button class="btn btn-danger">Sair</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 TROBeats. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="/js/perfil.js"></script>
+</body>
+</html>
