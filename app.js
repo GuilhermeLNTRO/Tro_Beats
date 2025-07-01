@@ -11,12 +11,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // --- Dados de Exemplo (Simulação de um Banco de Dados) ---
 const trendingBeatsData = [
-    { id: 1, title: 'Vision | 21savage x N...', artist: 'nohookz', price: '25.00', cover: '/img/beat1-cover.jpg', featured: false },
-    { id: 2, title: 'Ready | Humho x N...', artist: 'BIYO', price: '24.95', cover: '/img/beat2-cover.jpg', featured: true },
-    { id: 3, title: 'Time Back (Prod. b...', artist: 'kotsuru', price: '20.95', cover: '/img/beat3-cover.jpg', featured: false },
-    { id: 4, title: '100 BEATS FOR $100', artist: 'waynocat', price: '100.00', cover: '/img/beat4-cover.jpg', featured: false },
-    { id: 5, title: 'MURDER - 1+9 FREE', artist: 'Gotenkeyy', price: '20.99', cover: '/img/beat5-cover.jpg', featured: false },
-    { id: 6, title: 'Rise (Pop)', artist: 'rabbel', price: '29.95', cover: '/img/beat6-cover.jpg', featured: false }
+    { id: 1, title: 'Vision | 21savage x N...', artist: 'nohookz', price: '25.00', cover: '/img/beat1_cover.jpg', featured: false },
+    { id: 2, title: 'Ready | Humho x N...', artist: 'BIYO', price: '24.95', cover: '/img/beat2_cover.jpg', featured: true },
+    { id: 3, title: 'Time Back (Prod. b...', artist: 'kotsuru', price: '20.95', cover: '/img/beat3_cover.jpg', featured: false },
+    { id: 4, title: '100 BEATS FOR $100', artist: 'waynocat', price: '100.00', cover: '/img/beat4_cover.jpg', featured: false },
+    { id: 5, title: 'MURDER - 1+9 FREE', artist: 'Gotenkeyy', price: '20.99', cover: '/img/beat5_cover.jpg', featured: false },
+    { id: 6, title: 'Rise (Pop)', artist: 'rabbel', price: '29.95', cover: '/img/beat6_cover.jpg', featured: false }
 ];
 
 const newReleasesData = [
