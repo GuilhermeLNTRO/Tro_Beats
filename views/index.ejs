@@ -9,20 +9,19 @@
 </head>
 <body>
     <header class="header">
-    <div class="container header-content">
-        <div class="logo">
-            <a href="/" aria-label="Página Inicial"> <h1>TROBeats</h1>
-            </a>
+        <div class="container header-content">
+            <div class="logo">
+                <a href="/" aria-label="Página Inicial"> <h1>TROBeats</h1>
+                </a>
+            </div>
+            <div class="header-actions">
+                <a href="/vender" class="btn btn-primary">Começar a Vender</a>
+                <a href="/register" class="btn btn-secondary">Cadastre-se</a>
+                <a href="/login" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
+                <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
+            </div>
         </div>
-        <div class="header-actions">
-            
-            <a href="/vender" class="btn btn-primary">Começar a Vender</a>
-            <a href="/register" class="btn btn-secondary">Cadastre-se</a>
-            <a href="/login" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
-            <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
-        </div>
-    </div>
-</header>
+    </header>
 
     <main class="main-content">
         <section class="trending-beats section-padding">
@@ -36,15 +35,23 @@
                                 <h3><%= beat.title %></h3>
                                 <p class="artist"><%= beat.artist %></p>
                                 <div class="beat-actions">
-                                    <span class="price">$<%= beat.price %></span>
+                                    <span class="price">R$<%= parseFloat(beat.price).toFixed(2).replace('.', ',') %></span>
                                     <button class="btn-icon" aria-label="Ouvir Beat"><i class="fas fa-play"></i></button>
                                     <button class="btn-icon" aria-label="Baixar Beat"><i class="fas fa-download"></i></button>
+                                    
+                                    <button class="btn btn-primary add-to-cart-btn"
+                                            data-id="<%= beat.id %>"
+                                            data-title="<%= beat.title %>"
+                                            data-artist="<%= beat.artist %>"
+                                            data-price="<%= beat.price %>"
+                                            data-cover="<%= beat.cover %>">
+                                        Adicionar ao Carrinho
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     <% }); %>
                 </div>
-                
             </div>
         </section>
 
@@ -59,9 +66,18 @@
                                 <h3><%= beat.title %></h3>
                                 <p class="artist"><%= beat.artist %></p>
                                 <div class="beat-actions">
-                                    <span class="price">$<%= beat.price %></span>
+                                    <span class="price">R$<%= parseFloat(beat.price).toFixed(2).replace('.', ',') %></span>
                                     <button class="btn-icon" aria-label="Ouvir Beat"><i class="fas fa-play"></i></button>
                                     <button class="btn-icon" aria-label="Baixar Beat"><i class="fas fa-download"></i></button>
+
+                                    <button class="btn btn-primary add-to-cart-btn"
+                                            data-id="<%= beat.id %>"
+                                            data-title="<%= beat.title %>"
+                                            data-artist="<%= beat.artist %>"
+                                            data-price="<%= beat.price %>"
+                                            data-cover="<%= beat.cover %>">
+                                        Adicionar ao Carrinho
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -77,6 +93,8 @@
         </div>
     </footer>
 
-    <script src="/js/script.js"></script>
+    <script src="/js/script.js"></script> 
+    
+    <script src="/js/add-to-cart.js"></script>
 </body>
 </html>

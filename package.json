@@ -22,7 +22,7 @@
   "dependencies": {
     "ejs": "^3.1.9",
     "express": "^4.19.2",
-    "trobeats": "file:"
+    "express-session": "^1.18.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

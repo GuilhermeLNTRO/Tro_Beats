@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const session = require('express-session');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -8,30 +9,45 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// --- Dados de Exemplo (Simulação de um Banco de Dados) ---
+// --- Configuração da Sessão ---
+app.use(session({
+    secret: 'sua_super_chave_secreta_e_unica_aqui_para_a_sessao', // MUDE ISSO EM PRODUÇÃO! Use uma string longa e aleatória.
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 'false' para HTTP (dev), 'true' para HTTPS (prod)
+}));
+
+// --- Middleware para popular o carrinho com dados de exemplo na sessão ---
+// Isso garante que você sempre tenha itens no carrinho para testar
+app.use((req, res, next) => {
+    if (!req.session.cart) {
+        req.session.cart = [
+            { id: 'item101', title: 'Epic Trap Beat', artist: 'Producer X', price: 29.99, cover: '/img/cart1.jpg', quantity: 1 },
+            { id: 'item102', title: 'Chill Lo-Fi Beat', artist: 'BeatMaster', price: 19.99, cover: '/img/cart2.jpg', quantity: 1 },
+            { id: 'item103', title: 'Hard Drill Beat', artist: 'DrillKing', price: 34.99, cover: '/img/cart3.jpg', quantity: 1 }
+        ];
+    }
+    next();
+});
+
+// --- Dados de Exemplo para a Home (Trending Beats e New Releases) ---
 const trendingBeatsData = [
-    { id: 1, title: 'Vision | 21savage x N...', artist: 'nohookz', price: '25.00', cover: '/img/beat1_cover.jpg', featured: false },
-    { id: 2, title: 'Ready | Humho x N...', artist: 'BIYO', price: '24.95', cover: '/img/beat2_cover.jpg', featured: true },
-    { id: 3, title: 'Time Back (Prod. b...', artist: 'kotsuru', price: '20.95', cover: '/img/beat3_cover.jpg', featured: false },
-    { id: 4, title: '100 BEATS FOR $100', artist: 'waynocat', price: '100.00', cover: '/img/beat4_cover.jpg', featured: false },
-    { id: 5, title: 'MURDER - 1+9 FREE', artist: 'Gotenkeyy', price: '20.99', cover: '/img/beat5_cover.jpg', featured: false },
-    { id: 6, title: 'Rise (Pop)', artist: 'rabbel', price: '29.95', cover: '/img/beat6_cover.jpg', featured: false }
+    { id: 'beat1', title: 'Vision | 21savage x N...', artist: 'nohookz', price: 25.00, cover: '/img/beat1_cover.jpg', featured: false },
+    { id: 'beat2', title: 'Ready | Humho x N...', artist: 'BIYO', price: 87.95, cover: '/img/beat2_cover.jpg', featured: true },
+    { id: 'beat3', title: 'Time Back (Prod. b...', artist: 'kotsuru', price: 20.95, cover: '/img/beat3_cover.jpg', featured: false },
+    { id: 'beat4', title: '100 BEATS FOR R$100', artist: 'waynocat', price: 100.00, cover: '/img/beat4_cover.jpg', featured: false },
+    { id: 'beat5', title: 'MURDER - 1+9 FREE', artist: 'Gotenkeyy', price: 40.99, cover: '/img/beat5_cover.jpg', featured: false },
+    { id: 'beat6', title: 'Rise (Pop)', artist: 'rabbel', price: 59.95, cover: '/img/beat6_cover.jpg', featured: false }
 ];
 
 const newReleasesData = [
-    { id: 7, title: 'New Vibe (Chill Hop)', artist: 'producerX', price: '18.00', cover: '/img/new1-cover.jpg' },
-    { id: 8, title: 'Dark Trap Anthem', artist: 'beatlord', price: '35.00', cover: '/img/new2-cover.jpg' },
-    { id: 9, title: 'Summer Groove', artist: 'sunnymusic', price: '22.50', cover: '/img/new3-cover.jpg' }
+    { id: 'beat7', title: 'New Vibe (Chill Hop)', artist: 'producerX', price: 18.00, cover: '/img/new1-cover.jpg' },
+    { id: 'beat8', title: 'Dark Trap Anthem', artist: 'beatlord', price: 35.00, cover: '/img/new2-cover.jpg' },
+    { id: 'beat9', title: 'Summer Groove', artist: 'sunnymusic', price: 22.50, cover: '/img/new3-cover.jpg' }
 ];
 
-const cartItemsData = [
-    { id: 101, title: 'Epic Trap Beat', artist: 'Producer X', price: 29.99, cover: '/img/cart1.jpg', quantity: 1 },
-    { id: 102, title: 'Chill Lo-Fi Beat', artist: 'BeatMaster', price: 19.99, cover: '/img/cart2.jpg', quantity: 2 },
-    { id: 103, title: 'Hard Drill Beat', artist: 'DrillKing', price: 34.99, cover: '/img/cart3.jpg', quantity: 1 }
-];
-
-// Dados de usuário de exemplo para o perfil (simulação)
 const userData = {
     username: 'UsuarioTROBeats',
     email: 'usuario@exemplo.com',
@@ -41,9 +57,8 @@ const userData = {
     bio: 'Produtor musical apaixonado por criar batidas de Trap e Drill. Sempre buscando novos sons e inspirações.'
 };
 
-// --- Rotas da Aplicação ---
+// --- ROTAS DA APLICAÇÃO ---
 
-// Rota para a Página Home
 app.get('/', (req, res) => {
     res.render('index', {
         trendingBeats: trendingBeatsData,
@@ -51,14 +66,10 @@ app.get('/', (req, res) => {
     });
 });
 
-// --- Rotas de Autenticação e Cadastro ---
-
-// Rota GET para Cadastro (Exibir Formulário)
 app.get('/register', (req, res) => {
     res.render('register', { messages: {} });
 });
 
-// Rota POST para Cadastro (Processar Formulário)
 app.post('/register', (req, res) => {
     const { username, email, password, confirm_password, is_beatmaker, producer_name, bio } = req.body;
     let errors = {};
@@ -77,58 +88,80 @@ app.post('/register', (req, res) => {
         return res.render('register', { messages: errors, formData: req.body });
     }
 
-    console.log('Dados de Cadastro Recebidos:', {
-        username,
-        email,
-        is_beatmaker: is_beatmaker === 'on' ? true : false,
-        producer_name: producer_name || 'N/A',
-        bio: bio || 'N/A'
-    });
-
-    // Após cadastro bem-sucedido, redireciona para a página de login
     res.render('login', { messages: { success: 'Cadastro realizado com sucesso! Faça login para continuar.' } });
 });
 
-// Rota GET para Login (Exibir Formulário)
 app.get('/login', (req, res) => {
     res.render('login', { messages: {} });
 });
 
-// Rota POST para Login (Processar Formulário)
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
-    // Simulação de login: Se as credenciais forem corretas, redireciona para o perfil.
     if (email === 'teste@exemplo.com' && password === '123456') {
-        console.log('Login bem-sucedido (simulação)! Redirecionando para o perfil...');
-        res.redirect('/perfil'); // Redireciona para a página de perfil
+        res.redirect('/perfil');
     } else {
-        console.log('Login falhou (simulação)!');
         res.render('login', { messages: { error: 'Email ou senha inválidos.' }, formData: { email } });
     }
 });
 
-// --- Rotas Principais da Aplicação ---
-
-// Rota para a Página de Catálogo
 app.get('/catalogo', (req, res) => {
     res.send('Página de Catálogo (a ser implementada)');
 });
 
-// Rota para a Página de Perfil (CORRIGIDA)
 app.get('/perfil', (req, res) => {
-    // Em um app real, aqui você verificaria se o usuário está logado
-    // e buscaria os dados REAIS dele do banco de dados.
-    // Por enquanto, usamos os dados de exemplo definidos acima.
     res.render('perfil', { user: userData });
 });
 
-// Rota para a Página de Carrinho de Compras
+// Rota para a Página de Carrinho de Compras (GET)
 app.get('/carrinho', (req, res) => {
-    res.render('cart', { cartItems: cartItemsData });
+    const cartItems = (req.session.cart || []).map(item => ({
+        ...item,
+        price: parseFloat(item.price) || 0,
+        quantity: parseInt(item.quantity) || 0
+    }));
+    res.render('cart', { cartItems: cartItems });
 });
 
-// Rota para a Página 'Começar a Vender'
+// Rota para Remover um Item do Carrinho (DELETE)
+app.delete('/carrinho/remover/:id', (req, res) => {
+    const itemIdToRemove = req.params.id;
+    let cart = req.session.cart || [];
+    const initialCartLength = cart.length;
+
+    cart = cart.filter(item => String(item.id) !== String(itemIdToRemove));
+
+    if (cart.length < initialCartLength) {
+        req.session.cart = cart;
+        res.status(200).json({ message: 'Item removido com sucesso!' });
+    } else {
+        res.status(404).json({ message: 'Item não encontrado.' });
+    }
+});
+
+// Rota para Adicionar um Item ao Carrinho (POST)
+app.post('/carrinho/adicionar', (req, res) => {
+    const { id, title, artist, price, cover } = req.body;
+
+    if (!id || !title || !artist || !price || !cover) {
+        return res.status(400).json({ message: 'Dados do beat incompletos para adicionar ao carrinho.' });
+    }
+
+    let cart = req.session.cart || [];
+    const existingItemIndex = cart.findIndex(item => String(item.id) === String(id));
+
+    if (existingItemIndex > -1) {
+        cart[existingItemIndex].quantity = (cart[existingItemIndex].quantity || 0) + 1;
+    } else {
+        cart.push({ id, title, artist, price: parseFloat(price), cover, quantity: 1 });
+    }
+
+    req.session.cart = cart;
+
+    res.status(200).json({ message: 'Item adicionado ao carrinho com sucesso!', cartCount: cart.length });
+});
+
+
 app.get('/vender', (req, res) => {
     res.send('Página Começar a Vender (a ser implementada)');
 });

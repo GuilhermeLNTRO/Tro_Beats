@@ -1,21 +1,33 @@
-/* Variáveis de Cores */
+/* --- Variáveis de Cores --- */
 :root {
-    --bg-dark: #1a1a1a; /* Fundo escuro */
-    --text-light: #ffffff; /* Texto claro */
-    --primary-purple: #8A2BE2; /* Roxo vibrante (como o botão Start Selling) */
+    --bg-dark: #1a1a1a;
+    --text-light: #ffffff;
+    --primary-purple: #8A2BE2; /* Roxo vibrante */
     --secondary-purple: #A569BD; /* Roxo secundário para destaques */
-    --border-gray: #333; /* Cor da borda */
+    --border-gray: #333;
+    --header-bg: #0d0d0d; /* Cor específica do seu header original */
+    --card-bg: #2b2b2b; /* Cor específica do seu card original */
+    --search-bg: #2b2b2b; /* Fundo para a barra de pesquisa */
+    --search-button-hover: #6a0dad; /* Hover para o botão de pesquisa */
+    --alert-error: #dc3545; /* Vermelho para erros (para botão de remover) */
+    --alert-success: #28a745; /* Verde para sucesso */
+    --input-bg: #2b2b2b; /* Fundo para inputs */
+    --input-border-focus: #A569BD; /* Borda do input ao focar */
 }
 
-/* Reset Básico e Estilos Gerais */
-body {
-    font-family: Arial, sans-serif;
+/* --- Reset Básico e Estilos Gerais --- */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
     background-color: var(--bg-dark);
     color: var(--text-light);
     line-height: 1.6;
-    -webkit-font-smoothing: antialiased; /* Para melhor renderização de fontes */
+    -webkit-font-smoothing: antialiased; /* Melhor renderização de fontes */
     -moz-osx-font-smoothing: grayscale;
 }
 
@@ -27,12 +39,13 @@ body {
 
 a {
     text-decoration: none;
-    color: inherit;
+    color: inherit; /* Mantém a cor do texto pai por padrão */
+    transition: color 0.3s ease; /* Adicionado para links */
 }
 
-/* Header */
+/* --- Header --- */
 .header {
-    background-color: #0d0d0d;
+    background-color: var(--header-bg); /* Usando variável para consistência */
     padding: 15px 0;
     border-bottom: 1px solid var(--border-gray);
 }
@@ -41,63 +54,35 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap; /* Permite que os itens quebrem a linha em telas menores */
-    gap: 15px; /* Espaçamento entre os blocos no header */
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .logo h1 {
     margin: 0;
     font-size: 28px;
     color: var(--text-light);
-    white-space: nowrap; /* Evita que o logo quebre em várias linhas */
+    white-space: nowrap;
 }
 
-.main-nav {
-    flex-grow: 1; /* Permite que a navegação ocupe o espaço disponível */
-    text-align: center;
-}
-
-.main-nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center; /* Centraliza os itens de navegação */
-    flex-wrap: wrap;
-}
-
-.main-nav li {
-    margin: 0 15px; /* Espaçamento entre os itens de navegação */
-}
-
-.main-nav a {
-    color: var(--text-light);
-    text-decoration: none;
-    font-size: 16px;
-    transition: color 0.3s ease;
-    padding: 5px 0; /* Adiciona padding para área de clique */
-    display: block;
-}
-
-.main-nav a:hover {
-    color: var(--primary-purple);
-}
+/* Removido .main-nav, pois não estava no HTML que você forneceu recentemente */
+/* Se você ainda usa navegação principal, reincorpore-a com cuidado. */
 
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 15px; /* Espaçamento entre os elementos de ação */
-    flex-wrap: wrap; /* Permite que os botões e ícones quebrem a linha */
-    justify-content: flex-end; /* Alinha à direita */
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .search-bar {
     display: flex;
-    background-color: #2b2b2b;
+    background-color: var(--search-bg);
     border-radius: 5px;
     overflow: hidden;
-    flex-grow: 1; /* Permite que a barra de pesquisa cresça */
-    max-width: 300px; /* Largura máxima para a barra de pesquisa */
+    flex-grow: 1;
+    max-width: 300px;
 }
 
 .search-bar input {
@@ -106,8 +91,8 @@ a {
     padding: 8px 12px;
     color: var(--text-light);
     outline: none;
-    flex-grow: 1; /* Input ocupa o máximo de espaço */
-    min-width: 100px; /* Largura mínima para o input */
+    flex-grow: 1;
+    min-width: 100px;
 }
 
 .search-bar button {
@@ -117,33 +102,35 @@ a {
     padding: 8px 12px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    flex-shrink: 0; /* Não encolhe o botão */
+    flex-shrink: 0;
 }
 
 .search-bar button:hover {
-    background-color: #6a0dad; /* Um tom mais escuro de roxo */
+    background-color: var(--search-button-hover); /* Usando variável */
 }
 
+/* --- Botões Gerais (btn, btn-primary, btn-secondary) --- */
 .btn {
     padding: 10px 20px;
     border-radius: 5px;
     text-decoration: none;
     font-weight: bold;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    white-space: nowrap; /* Evita que o texto do botão quebre */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Adicionado border-color */
+    white-space: nowrap;
+    cursor: pointer; /* Garante cursor de ponteiro para todos os .btn */
 }
 
 .btn-primary {
     background-color: var(--primary-purple);
     color: var(--text-light);
-    border: none;
+    border: none; /* Garante que não tenha borda */
 }
 
 .btn-primary:hover {
-    background-color: #6a0dad;
+    background-color: var(--search-button-hover); /* O mesmo tom de hover do search-button */
 }
 
-.btn-secondary { /* Novo estilo para o botão de cadastro no header */
+.btn-secondary {
     background-color: transparent;
     color: var(--primary-purple);
     border: 1px solid var(--primary-purple);
@@ -154,6 +141,7 @@ a {
     color: var(--text-light);
 }
 
+/* --- Ícones de Ação no Header (Usuário, Carrinho) --- */
 .user-icon, .cart-icon {
     color: var(--text-light);
     font-size: 24px;
@@ -165,13 +153,38 @@ a {
     color: var(--primary-purple);
 }
 
-/* Main Content - Seções */
+/* --- Balão de Contagem do Carrinho (NOVO) --- */
+.cart-icon {
+    position: relative;
+    display: inline-block; /* Importante para que o position:absolute funcione para o span */
+}
+
+.cart-icon .cart-count {
+    position: absolute;
+    top: -8px; /* Ajuste para cima */
+    right: -12px; /* Ajuste para a direita */
+    background-color: var(--alert-error); /* Cor de destaque para a notificação */
+    color: var(--text-light);
+    font-size: 0.7em;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 3px 7px;
+    min-width: 20px; /* Garante um tamanho mínimo para balões de 1 dígito */
+    text-align: center;
+    line-height: 1; /* Alinha o texto verticalmente */
+    display: none; /* Escondido por padrão, mostrado por JS */
+    border: 1px solid var(--bg-dark); /* Borda para contraste com o fundo */
+}
+
+
+/* --- Main Content - Seções --- */
 .main-content {
-    padding-top: 20px;
+    padding-top: 20px; /* Mantido do seu código */
+    min-height: calc(100vh - 140px); /* Ajustado para preencher a tela */
 }
 
 .section-padding {
-    padding: 40px 0;
+    padding: 40px 0; /* Mantido do seu código */
 }
 
 h2 {
@@ -182,57 +195,59 @@ h2 {
     font-weight: bold;
 }
 
-/* Beat Grid */
+/* --- Beat Grid --- */
 .beat-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Colunas responsivas */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 30px;
     justify-content: center;
 }
 
 .beat-card {
-    background-color: #2b2b2b;
+    background-color: var(--card-bg); /* Usando variável */
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; /* Adicionado border-color */
     border: 1px solid var(--border-gray);
     display: flex;
     flex-direction: column;
+    height: 100%; /* Garante altura uniforme */
 }
 
 .beat-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    /* background-color: #333333; -- Não é necessário se o card-bg é mais escuro, evite mudança brusca */
 }
 
 .beat-card.featured-card {
-    border: 2px solid var(--secondary-purple); /* Destaque para o card selecionado */
+    border: 2px solid var(--secondary-purple);
     box-shadow: 0 0 15px rgba(165, 105, 189, 0.7);
 }
 
 .beat-card img {
     width: 100%;
-    height: 200px; /* Altura fixa para as imagens */
-    object-fit: cover; /* Garante que a imagem cubra o espaço sem distorcer */
+    height: 200px;
+    object-fit: cover;
     display: block;
 }
 
 .beat-info {
     padding: 15px;
-    flex-grow: 1; /* Permite que o info ocupe o espaço restante */
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    /* justify-content: space-between; -- Removido, beat-actions terá margin-top: auto */
 }
 
 .beat-info h3 {
     margin: 0 0 5px 0;
     font-size: 18px;
-    color: var(--text-light);
-    white-space: nowrap; /* Evita que o título do beat quebre */
-    overflow: hidden; /* Esconde o excesso de texto */
-    text-overflow: ellipsis; /* Adiciona "..." ao texto cortado */
+    color: var(--text-light); /* Cor original do título do beat */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .beat-info .artist {
@@ -246,9 +261,10 @@ h2 {
 
 .beat-actions {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: 10px;
+    flex-wrap: wrap; /* Permite que os itens quebrem a linha */
+    gap: 10px; /* Espaçamento entre os itens de ação */
+    margin-top: auto; /* Empurra os itens para o final do beat-info */
 }
 
 .beat-actions .price {
@@ -256,10 +272,12 @@ h2 {
     font-weight: bold;
     color: var(--primary-purple);
     white-space: nowrap;
+    margin-right: auto; /* Empurra os botões para a direita */
 }
 
+/* --- Botões de Ícone (Play, Download) dentro do beat-card --- */
 .btn-icon {
-    background-color: #444;
+    background-color: #444; /* Fundo cinza escuro */
     border: none;
     color: var(--text-light);
     padding: 8px 12px;
@@ -267,12 +285,20 @@ h2 {
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s ease, color 0.3s ease;
-    margin-left: 5px;
+    /* margin-left: 5px; -- Removido, usando gap no pai */
 }
 
 .btn-icon:hover {
     background-color: var(--primary-purple);
     color: var(--text-light);
+}
+
+/* --- Botão "Adicionar ao Carrinho" (NOVO) --- */
+.add-to-cart-btn {
+    width: 100%; /* Faz com que ocupe a largura total */
+    margin-top: 10px; /* Espaçamento acima do botão */
+    /* Garante que o .btn-primary seja aplicado com sucesso */
+    /* padding, font-size, etc. serão herdados de .btn e .btn-primary */
 }
 
 .see-more {
@@ -287,22 +313,280 @@ h2 {
 }
 
 .see-more:hover {
-    color: #6a0dad;
+    color: var(--search-button-hover); /* Usando variável */
 }
 
-/* Footer */
+/* --- Cart Page Specific Styles --- */
+.cart-page .cart-table-container {
+    overflow-x: auto;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-gray);
+    border-radius: 8px;
+}
+
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.cart-table th, .cart-table td {
+    text-align: left;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-gray);
+}
+
+.cart-table th {
+    background-color: var(--secondary-purple);
+    color: var(--text-light);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+.cart-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.cart-table tbody tr:hover {
+    background-color: #333333; /* Fundo no hover da linha da tabela */
+}
+
+.cart-item-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.cart-item-info img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.cart-item-info h3 {
+    margin: 0;
+    font-size: 1.1em;
+}
+
+.cart-item-info .artist {
+    font-size: 0.8em;
+    color: #aaa;
+}
+
+.cart-table td:nth-child(2) {
+    font-weight: bold;
+}
+
+.item-quantity {
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid var(--border-gray);
+    background-color: var(--input-bg);
+    color: var(--text-light);
+    border-radius: 4px;
+    text-align: center;
+    min-width: 40px;
+}
+
+.subtotal, .total-price {
+    font-weight: bold;
+    color: var(--primary-purple);
+}
+
+.total-row {
+    background-color: #333333; /* Fundo para a linha total */
+    font-weight: bold;
+}
+
+.total-label {
+    text-align: right;
+    padding-right: 20px;
+    font-size: 1.2em;
+    color: var(--text-light);
+}
+
+.cart-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.empty-cart-message {
+    text-align: center;
+    font-size: 1.2em;
+    color: #bbb;
+    margin-top: 50px;
+    margin-bottom: 30px;
+}
+
+/* --- Botão de Remover Item (Carrinho) --- */
+.btn-icon.btn-remove {
+    color: var(--alert-error); /* Cor vermelha para remoção */
+    font-size: 1.4em; /* Ícone maior */
+    transition: none; /* Sem transição de hover */
+    background-color: transparent; /* Sem fundo */
+    /* Remover qualquer margin-left aqui se houver um específico */
+}
+
+/* Remove qualquer efeito de hover ou active para o botão de remover */
+.btn-remove:hover,
+.btn-remove:focus,
+.btn-remove:active {
+    background-color: transparent;
+    color: var(--alert-error); /* Mantém a cor vermelha */
+    outline: none;
+    box-shadow: none;
+    transform: none;
+}
+.btn-remove i:hover { /* Garante que o ícone em si não mude no hover */
+    color: var(--alert-error);
+}
+
+
+/* --- Footer --- */
 .footer {
-    background-color: #0d0d0d;
+    background-color: var(--header-bg); /* Consistente com o header */
     padding: 20px 0;
     text-align: center;
     border-top: 1px solid var(--border-gray);
     margin-top: 40px;
+    font-size: 0.9em;
+    color: #aaa;
 }
 
-.footer p {
-    margin: 0;
-    font-size: 14px;
-    color: #aaa;
+/* --- Media Queries (Responsividade) --- */
+@media (max-width: 992px) {
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .search-bar {
+        max-width: none; /* Permite que a barra de pesquisa ocupe a largura total */
+        width: 100%;
+    }
+    .beat-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+    h2 {
+        font-size: 2em;
+    }
+    .beat-card img {
+        height: 180px;
+    }
+    .beat-info h3 {
+        font-size: 1.1em;
+    }
+    .beat-actions .price {
+        font-size: 1em;
+    }
+    .btn-icon {
+        padding: 6px;
+        font-size: 1em;
+    }
+    .add-to-cart-btn {
+        font-size: 0.9em;
+        padding: 8px 0;
+    }
+
+    /* Carrinho */
+    .cart-table th, .cart-table td {
+        padding: 10px;
+        font-size: 14px;
+    }
+    .cart-item-info img {
+        width: 60px;
+        height: 60px;
+    }
+    .cart-item-info h3 {
+        font-size: 15px;
+    }
+    .item-quantity {
+        padding: 6px;
+        font-size: 14px;
+        min-width: 30px;
+    }
+    .cart-actions .btn {
+        padding: 10px 20px;
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.8em;
+    }
+    h2 {
+        font-size: 1.8em;
+        margin-bottom: 25px;
+    }
+    .beat-grid {
+        grid-template-columns: 1fr;
+    }
+    .beat-card img {
+        height: 150px;
+    }
+    .beat-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .beat-actions .price {
+        width: 100%;
+        text-align: center;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    .btn-icon {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    .add-to-cart-btn {
+        margin-top: 5px;
+    }
+
+    /* Carrinho */
+    .cart-table th, .cart-table td {
+        padding: 8px;
+        font-size: 13px;
+    }
+    .cart-item-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .cart-item-info img {
+        width: 50px;
+        height: 50px;
+    }
+    .cart-item-info h3 {
+        font-size: 14px;
+        margin-bottom: 3px;
+    }
+    .item-quantity {
+        padding: 5px;
+        font-size: 13px;
+        min-width: 25px;
+    }
+    .cart-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .cart-actions .btn {
+        width: 100%;
+        text-align: center;
+    }
 }
 
 /* Estilos Específicos para Páginas de Formulário (Cadastro/Login) */
@@ -756,6 +1040,65 @@ h2 {
 }
 
 /* Responsividade para a Página do Carrinho */
+/* Variáveis de Cores (seus já existentes) */
+:root {
+    --bg-dark: #1a1a1a;
+    --text-light: #ffffff;
+    --primary-purple: #8A2BE2;
+    --secondary-purple: #A569BD;
+    --border-gray: #333;
+    --alert-error: #dc3545;
+    --alert-success: #28a745;
+    --input-bg: #2b2b2b;
+    --input-border-focus: #A569BD;
+}
+
+/* ... Seu CSS existente ... */
+
+/* Estilos para o botão de ícone base */
+.btn-icon {
+    background-color: transparent;
+    border: none;
+    color: var(--text-light); /* Cor padrão do ícone */
+    cursor: pointer;
+    padding: 5px;
+    font-size: 1.2em; /* Ajuste o tamanho do ícone se necessário */
+    transition: none; /* Garante que não há transição */
+}
+
+/* Remove hover para o botão de remover */
+.btn-remove:hover,
+.btn-remove:focus,
+.btn-remove:active {
+    background-color: transparent; /* Sem fundo no hover/focus/active */
+    color: var(--text-light); /* Mantém a cor do ícone */
+    outline: none; /* Remove outline de foco */
+    box-shadow: none; /* Remove sombra no hover/focus/active */
+    transform: none; /* Remove transformações (escalar, etc.) */
+}
+
+/* Certifique-se de que o ícone em si também não tenha hover, se for o caso */
+.btn-remove i:hover {
+    color: var(--text-light);
+}
+
+/* Se você tinha estilos específicos para .quantity-control, pode removê-los ou adaptá-los se ainda precisar de algum div específico */
+/* Exemplo: .quantity-control { display: none; } */
+/* Ou apenas remova as regras CSS que se aplicavam a ele. */
+
+/* Estilo para a quantidade exibida (novo span) */
+.item-quantity {
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid var(--border-gray);
+    background-color: var(--input-bg);
+    color: var(--text-light);
+    border-radius: 4px;
+    text-align: center;
+    min-width: 40px; /* Para garantir que o número apareça bem */
+}
+
+/* Media Queries (seus já existentes, mas verifique se há referências a .quantity-control) */
 @media (max-width: 768px) {
     .cart-table th, .cart-table td {
         padding: 10px;
@@ -771,15 +1114,17 @@ h2 {
         font-size: 15px;
     }
 
-    .quantity-control input[type="number"] {
-        width: 50px;
-        padding: 6px;
-        font-size: 14px;
-    }
+    /* Removido: .quantity-control input[type="number"] */
 
     .cart-actions .btn {
         padding: 10px 20px;
         font-size: 15px;
+    }
+
+    .item-quantity { /* Estilo para o novo span de quantidade */
+        padding: 6px;
+        font-size: 14px;
+        min-width: 30px;
     }
 }
 
@@ -804,11 +1149,7 @@ h2 {
         margin-bottom: 3px;
     }
 
-    .quantity-control input[type="number"] {
-        width: 40px;
-        padding: 5px;
-        font-size: 13px;
-    }
+    /* Removido: .quantity-control input[type="number"] */
 
     .cart-actions {
         flex-direction: column;
@@ -818,19 +1159,12 @@ h2 {
         width: 100%;
         text-align: center;
     }
-}
 
-/* Variáveis de Cores */
-:root {
-    --bg-dark: #1a1a1a; /* Fundo escuro */
-    --text-light: #ffffff; /* Texto claro */
-    --primary-purple: #8A2BE2; /* Roxo vibrante (como o botão Start Selling) */
-    --secondary-purple: #A569BD; /* Roxo secundário para destaques */
-    --border-gray: #333; /* Cor da borda */
-    --alert-error: #dc3545; /* Vermelho para erros */
-    --alert-success: #28a745; /* Verde para sucesso */
-    --input-bg: #2b2b2b; /* Fundo para inputs */
-    --input-border-focus: #A569BD; /* Borda do input ao focar */
+    .item-quantity { /* Estilo para o novo span de quantidade */
+        padding: 5px;
+        font-size: 13px;
+        min-width: 25px;
+    }
 }
 
 /* Reset Básico e Estilos Gerais */
@@ -1304,4 +1638,4 @@ h2 {
     .profile-details {
         padding: 20px;
     }
-}
+} 

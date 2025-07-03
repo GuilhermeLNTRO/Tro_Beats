@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TROBeats - Home</title>
+    <title>TROBeats - Carrinho</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -15,7 +15,6 @@
                 </a>
             </div>
             <div class="header-actions">
-
                 <a href="/vender" class="btn btn-primary">Começar a Vender</a>
                 <a href="/register" class="btn btn-secondary">Cadastre-se</a>
                 <a href="/login" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
@@ -44,7 +43,10 @@
                             <tbody>
                                 <% let total = 0; %>
                                 <% cartItems.forEach(item => { %>
-                                    <% const subtotal = item.price * item.quantity; %>
+                                    <% // Garante que price e quantity são números para evitar NaN %>
+                                    <% const itemPrice = parseFloat(item.price) || 0; %>
+                                    <% const itemQuantity = parseInt(item.quantity) || 0; %>
+                                    <% const subtotal = itemPrice * itemQuantity; %>
                                     <% total += subtotal; %>
                                     <tr data-item-id="<%= item.id %>">
                                         <td>
@@ -54,15 +56,11 @@
                                                 <p class="artist"><%= item.artist %></p>
                                             </div>
                                         </td>
-                                        <td>$<%= item.price %></td>
+                                        <td>R$<%= itemPrice.toFixed(2).replace('.', ',') %></td>
                                         <td>
-                                            <div class="quantity-control">
-                                                <button class="btn-icon btn-decrease" aria-label="Diminuir Quantidade"><i class="fas fa-minus"></i></button>
-                                                <input type="number" class="quantity-input" value="<%= item.quantity %>" min="1">
-                                                <button class="btn-icon btn-increase" aria-label="Aumentar Quantidade"><i class="fas fa-plus"></i></button>
-                                            </div>
+                                            <span class="item-quantity"><%= itemQuantity %></span>
                                         </td>
-                                        <td class="subtotal">$<%= subtotal.toFixed(2) %></td>
+                                        <td class="subtotal">R$<%= subtotal.toFixed(2).replace('.', ',') %></td>
                                         <td>
                                             <button class="btn-icon btn-remove" aria-label="Remover Item"><i class="fas fa-trash"></i></button>
                                         </td>
@@ -70,7 +68,7 @@
                                 <% }); %>
                                 <tr class="total-row">
                                     <td colspan="3" class="total-label">Total:</td>
-                                    <td class="total-price">$<%= total.toFixed(2) %></td>
+                                    <td class="total-price">R$<%= total.toFixed(2).replace('.', ',') %></td>
                                     <td></td>
                                 </tr>
                             </tbody>
@@ -83,7 +81,7 @@
                     </div>
                 <% } else { %>
                     <p class="empty-cart-message">Seu carrinho está vazio.</p>
-                    <a href="/catalogo" class="btn btn-secondary">Começar a Comprar</a>
+                    <a href="/" class="btn btn-secondary">Começar a Comprar</a>
                 <% } %>
             </div>
         </section>
