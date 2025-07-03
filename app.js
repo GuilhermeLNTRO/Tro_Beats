@@ -98,7 +98,7 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
-    if (email === 'teste@exemplo.com' && password === '123456') {
+    if (email === 'guilhermecezartec@gmail.com' && password === '123456') {
         res.redirect('/perfil');
     } else {
         res.render('login', { messages: { error: 'Email ou senha inválidos.' }, formData: { email } });
