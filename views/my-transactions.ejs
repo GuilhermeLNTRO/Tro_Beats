@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TROBeats - Minhas Compras e Vendas</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <a href="/" aria-label="Página Inicial"> <h1>TROBeats</h1> </a>
+            </div>
+            <div class="header-actions">
+                <a href="/perfil" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
+                <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="transactions-section section-padding">
+            <div class="container">
+                <h2>Minhas Compras e Vendas</h2>
+
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="compras">Minhas Compras</button>
+                    <% if (user.isBeatmaker) { %>
+                        <button class="tab-button" data-tab="beats-a-venda">Meus Beats à Venda</button>
+                        <button class="tab-button" data-tab="historico-vendas">Histórico de Vendas</button>
+                    <% } %>
+                </div>
+
+                <div id="compras" class="tab-content active">
+                    <h3>Minhas Compras Recentes</h3>
+                    <% if (purchases && purchases.length > 0) { %>
+                        <div class="transactions-table-container">
+                            <table class="transactions-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Beat</th>
+                                        <th>Artista</th>
+                                        <th>Valor</th>
+                                        <th>Licença</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% purchases.forEach(purchase => { %>
+                                        <tr data-item-id="<%= purchase.id %>">
+                                            <td><%= purchase.date %></td>
+                                            <td>
+                                                <div class="item-info">
+                                                    <img src="<%= purchase.item.cover %>" alt="Capa: <%= purchase.item.title %>">
+                                                    <span><%= purchase.item.title %></span>
+                                                </div>
+                                            </td>
+                                            <td><%= purchase.item.artist %></td>
+                                            <td>R$<%= purchase.amount.toFixed(2).replace('.', ',') %></td>
+                                            <td><%= purchase.license %></td>
+                                            <td>
+                                                <button class="btn-icon" aria-label="Baixar Beat"><i class="fas fa-download"></i></button>
+                                                <button class="btn-icon" aria-label="Ver Detalhes"><i class="fas fa-info-circle"></i></button>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <p class="empty-message">Você ainda não realizou nenhuma compra.</p>
+                    <% } %>
+                </div>
+
+                <% if (user.isBeatmaker) { %>
+                    <div id="beats-a-venda" class="tab-content">
+                        <h3>Meus Beats Ativos para Venda</h3>
+                        <div class="add-new-beat-action">
+                             <a href="/vender-beat/novo" class="btn btn-primary add-beat-btn"><i class="fas fa-plus"></i> Adicionar Novo Beat</a>
+                        </div>
+                       
+                        <% if (beatsForSale && beatsForSale.length > 0) { %>
+                            <div class="transactions-table-container">
+                                <table class="transactions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Beat</th>
+                                            <th>Gênero</th>
+                                            <th>Preço</th>
+                                            <th>Status</th>
+                                            <th>Vendas</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% beatsForSale.forEach(beat => { %>
+                                            <tr data-beat-id="<%= beat.id %>">
+                                                <td>
+                                                    <div class="item-info">
+                                                        <img src="<%= beat.cover %>" alt="Capa: <%= beat.title %>">
+                                                        <span><%= beat.title %></span>
+                                                    </div>
+                                                </td>
+                                                <td><%= beat.genre %></td>
+                                                <td>R$<%= beat.price.toFixed(2).replace('.', ',') %></td>
+                                                <td><%= beat.status %></td>
+                                                <td><%= beat.salesCount %></td>
+                                                <td>
+                                                    <button class="btn-icon edit-beat-btn" aria-label="Editar Beat"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn-icon delete-beat-btn" aria-label="Excluir Beat"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <% } else { %>
+                            <p class="empty-message">Você ainda não tem nenhum beat à venda.</p>
+                            <a href="/vender-beat/novo" class="btn btn-primary">Começar a Vender Beats</a>
+                        <% } %>
+                    </div>
+
+                    <div id="historico-vendas" class="tab-content">
+                        <h3>Histórico de Vendas</h3>
+                        <% if (sales && sales.length > 0) { %>
+                            <div class="transactions-table-container">
+                                <table class="transactions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Beat Vendido</th>
+                                            <th>Comprador</th>
+                                            <th>Valor da Venda</th>
+                                            <th>Licença</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% sales.forEach(sale => { %>
+                                            <tr>
+                                                <td><%= sale.date %></td>
+                                                <td>
+                                                    <div class="item-info">
+                                                        <img src="<%= sale.beat.cover %>" alt="Capa: <%= sale.beat.title %>">
+                                                        <span><%= sale.beat.title %></span>
+                                                    </div>
+                                                </td>
+                                                <td><%= sale.buyer %></td>
+                                                <td>R$<%= sale.amount.toFixed(2).replace('.', ',') %></td>
+                                                <td><%= sale.license %></td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <% } else { %>
+                            <p class="empty-message">Você ainda não tem histórico de vendas.</p>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 TROBeats. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="/js/transactions.js"></script>
+</body>
+</html>

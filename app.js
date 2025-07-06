@@ -35,7 +35,7 @@ app.use((req, res, next) => {
 // --- Dados de Exemplo para a Home (Trending Beats e New Releases) ---
 const trendingBeatsData = [
     { id: 'beat1', title: 'Vision | 21savage x N...', artist: 'nohookz', price: 25.00, cover: '/img/beat1_cover.jpg', featured: false },
-    { id: 'beat2', title: 'Ready | Humho x N...', artist: 'BIYO', price: 87.95, cover: '/img/beat2_cover.jpg', featured: true },
+    { id: 'beat2', title: 'Ready | Humho x N...', artist: 'BIYO', price: 87.95, cover: '/img/beat2_cover.jpg', featured: false },
     { id: 'beat3', title: 'Time Back (Prod. b...', artist: 'kotsuru', price: 20.95, cover: '/img/beat3_cover.jpg', featured: false },
     { id: 'beat4', title: '100 BEATS FOR R$100', artist: 'waynocat', price: 100.00, cover: '/img/beat4_cover.jpg', featured: false },
     { id: 'beat5', title: 'MURDER - 1+9 FREE', artist: 'Gotenkeyy', price: 40.99, cover: '/img/beat5_cover.jpg', featured: false },
@@ -49,13 +49,60 @@ const newReleasesData = [
 ];
 
 const userData = {
-    username: 'UsuarioTROBeats',
-    email: 'usuario@exemplo.com',
+    username: 'Guilherme',
+    email: 'guilhermecezartec@gmail.com',
     profilePic: '/img/default-profile.png',
     isBeatmaker: true,
-    producerName: 'BeatMaker PRO',
-    bio: 'Produtor musical apaixonado por criar batidas de Trap e Drill. Sempre buscando novos sons e inspirações.'
+    producerName: 'Lil.Nego',
+    bio: 'Sou um produtor musical apaixonado por criar batidas de Trap e Drill. Sempre buscando novos sons e inspirações.'
 };
+
+// --- Dados de Exemplo para Compras e Vendas (Beatmaker) ---
+const userPurchasesData = [
+    {
+        id: 'purchase001',
+        date: '2025-06-15',
+        item: { id: 'beat1', title: 'Vision | 21savage x N...', artist: 'nohookz', price: 25.00, cover: '/img/beat1_cover.jpg' },
+        amount: 25.00,
+        license: '.wav'
+    },
+    {
+        id: 'purchase002',
+        date: '2025-05-20',
+        item: { id: 'beat7', title: 'New Vibe (Chill Hop)', artist: 'producerX', price: 18.00, cover: '/img/new1-cover.jpg' },
+        amount: 18.00,
+        license: 'Basic'
+    }
+];
+
+// O array beatmakerBeatsForSale será o "banco de dados" para operações de CRUD
+// ATENÇÃO: Em um app real, estes dados viriam de um banco de dados persistente.
+let beatmakerBeatsForSale = [
+    { id: 'mybeat01', title: 'Sunset Trap', genre: 'Trap', price: 45.00, cover: '/img/mybeat_sunset.jpg', status: 'À Venda', salesCount: 1 },
+    { id: 'mybeat02', title: 'Drill Aggressive', genre: 'Drill', price: 60.00, cover: '/img/mybeat_drill.jpg', status: 'Rascunho', salesCount: 0 },
+    { id: 'mybeat03', title: 'Lo-Fi Chill Study', genre: 'Lo-Fi', price: 30.00, cover: '/img/mybeat_lofi.jpg', status: 'À Venda', salesCount: 1},
+    { id: 'mybeat04', title: 'Boom Bap Groove', genre: 'Boom Bap', price: 50.00, cover: '/img/mybeat_boombap.jpg', status: 'Rascunho', salesCount: 0 }
+];
+
+const beatmakerSalesData = [
+    {
+        id: 'sale001',
+        date: '2025-06-01',
+        beat: { id: 'mybeat01', title: 'Sunset Trap', genre: 'Trap', price: 45.00, cover: '/img/mybeat_sunset.jpg' },
+        buyer: 'comprador123',
+        amount: 45.00,
+        license: 'Exclusive'
+    },
+    {
+        id: 'sale002',
+        date: '2025-06-10',
+        beat: { id: 'mybeat02', title: 'Drill Aggressive', genre: 'Drill', price: 60.00, cover: '/img/mybeat_drill.jpg' },
+        buyer: 'clienteXYZ',
+        amount: 60.00,
+        license: 'Exclusive'
+    }
+];
+
 
 // --- ROTAS DA APLICAÇÃO ---
 
@@ -161,10 +208,105 @@ app.post('/carrinho/adicionar', (req, res) => {
     res.status(200).json({ message: 'Item adicionado ao carrinho com sucesso!', cartCount: cart.length });
 });
 
-
 app.get('/vender', (req, res) => {
     res.send('Página Começar a Vender (a ser implementada)');
 });
+
+
+// Rota para a página "Minhas Compras e Vendas"
+app.get('/meus-negocios', (req, res) => {
+    res.render('my-transactions', {
+        user: userData, // Passa o objeto do usuário (para verificar 'isBeatmaker')
+        purchases: userPurchasesData,
+        sales: beatmakerSalesData,
+        beatsForSale: beatmakerBeatsForSale // Este array é agora manipulável pelas rotas abaixo
+    });
+});
+
+// --- ROTAS PARA GERENCIAMENTO DE BEATS (CRUD para Beatmakers) ---
+
+// Rota para exibir o formulário de criação/edição de beat
+// GET /vender-beat/novo ou GET /vender-beat/editar/:id
+app.get('/vender-beat/:action/:id?', (req, res) => {
+    const action = req.params.action; // 'novo' ou 'editar'
+    const beatId = req.params.id; // ID do beat se for editar
+
+    if (action === 'novo') {
+        res.render('create-edit-beat', { title: 'Adicionar Novo Beat', beat: null, isEdit: false });
+    } else if (action === 'editar' && beatId) {
+        // Em um app real, você buscaria o beat do DB e verificaria se pertence ao usuário logado
+        const beatToEdit = beatmakerBeatsForSale.find(b => String(b.id) === String(beatId));
+        if (beatToEdit) {
+            res.render('create-edit-beat', { title: `Editar Beat: ${beatToEdit.title}`, beat: beatToEdit, isEdit: true });
+        } else {
+            res.status(404).send('Beat não encontrado.');
+        }
+    } else {
+        res.status(400).send('Requisição inválida.');
+    }
+});
+
+// Rota para Criar um Novo Beat (POST)
+app.post('/api/beats', (req, res) => {
+    const { title, genre, price, cover, status } = req.body;
+
+    // Em um app real, o ID seria gerado por um banco de dados
+    const newBeatId = 'mybeat' + (Date.now().toString().slice(-5)); // Gera um ID simples e único
+    const newBeat = {
+        id: newBeatId,
+        title,
+        genre,
+        price: parseFloat(price),
+        cover: cover || '/img/default_beat_cover.jpg',
+        status: status || 'Rascunho',
+        salesCount: 0
+    };
+
+    beatmakerBeatsForSale.push(newBeat); // Adiciona ao array de beats à venda
+    console.log('Novo beat adicionado:', newBeat);
+
+    res.status(201).json({ message: 'Beat adicionado com sucesso!', beat: newBeat });
+});
+
+// Rota para Atualizar um Beat Existente (PUT)
+app.put('/api/beats/:id', (req, res) => {
+    const beatIdToUpdate = req.params.id;
+    const { title, genre, price, cover, status } = req.body;
+
+    const beatIndex = beatmakerBeatsForSale.findIndex(b => String(b.id) === String(beatIdToUpdate));
+
+    if (beatIndex > -1) {
+        // Atualiza os dados do beat, mantendo os que não foram alterados
+        beatmakerBeatsForSale[beatIndex] = {
+            ...beatmakerBeatsForSale[beatIndex],
+            title: title !== undefined ? title : beatmakerBeatsForSale[beatIndex].title,
+            genre: genre !== undefined ? genre : beatmakerBeatsForSale[beatIndex].genre,
+            price: price !== undefined ? parseFloat(price) : beatmakerBeatsForSale[beatIndex].price,
+            cover: cover !== undefined ? cover : beatmakerBeatsForSale[beatIndex].cover,
+            status: status !== undefined ? status : beatmakerBeatsForSale[beatIndex].status
+        };
+        console.log(`Beat ${beatIdToUpdate} atualizado:`, beatmakerBeatsForSale[beatIndex]);
+        res.status(200).json({ message: 'Beat atualizado com sucesso!', beat: beatmakerBeatsForSale[beatIndex] });
+    } else {
+        res.status(404).json({ message: 'Beat não encontrado para atualização.' });
+    }
+});
+
+// Rota para Excluir um Beat (DELETE)
+app.delete('/api/beats/:id', (req, res) => {
+    const beatIdToDelete = req.params.id;
+
+    const initialLength = beatmakerBeatsForSale.length;
+    beatmakerBeatsForSale = beatmakerBeatsForSale.filter(b => String(b.id) !== String(beatIdToDelete));
+
+    if (beatmakerBeatsForSale.length < initialLength) {
+        console.log(`Beat ${beatIdToDelete} excluído com sucesso.`);
+        res.status(200).json({ message: 'Beat excluído com sucesso!' });
+    } else {
+        res.status(404).json({ message: 'Beat não encontrado para exclusão.' });
+    }
+});
+
 
 // --- Inicialização do Servidor ---
 app.listen(PORT, () => {

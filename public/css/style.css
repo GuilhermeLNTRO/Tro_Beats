@@ -1639,3 +1639,249 @@ h2 {
         padding: 20px;
     }
 } 
+/* --- Estilos para a Página de Transações (my-transactions.ejs) --- */
+
+/* Seção de Tabs */
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    gap: 10px; /* Spacing between tab buttons */
+    flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
+}
+
+.tab-button {
+    background-color: var(--card-bg); /* Background of the beat cards */
+    color: var(--text-light);
+    border: 1px solid var(--border-gray);
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    white-space: nowrap; /* Prevents text from breaking */
+}
+
+.tab-button:hover {
+    background-color: var(--secondary-purple);
+    border-color: var(--primary-purple);
+}
+
+.tab-button.active {
+    background-color: var(--primary-purple);
+    border-color: var(--primary-purple);
+    color: var(--text-light);
+}
+
+.tab-button.active:hover {
+    background-color: var(--primary-purple); /* Keeps active color on hover */
+}
+
+/* Content of Tabs */
+.tab-content {
+    display: none; /* Hides all content by default */
+    padding: 20px 0;
+    margin-top: 20px; /* Space between tabs and content */
+}
+
+.tab-content.active {
+    display: block; /* Shows the active content */
+}
+
+.tab-content h3 {
+    font-size: 1.8em;
+    margin-bottom: 25px;
+    color: var(--primary-purple);
+    text-align: center; /* Centers the subsection title */
+}
+
+/* Transactions Table (Purchases and Sales) */
+.transactions-table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-gray);
+    border-radius: 8px;
+    background-color: var(--card-bg); /* Consistent with card backgrounds */
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px; /* Ensures minimum width for tables */
+}
+
+.transactions-table th, .transactions-table td {
+    text-align: left;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-gray);
+}
+
+.transactions-table th {
+    background-color: var(--secondary-purple);
+    color: var(--text-light);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+.transactions-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.transactions-table tbody tr:hover {
+    background-color: #333333; /* Hover effect for table rows */
+}
+
+.transactions-table .item-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.transactions-table .item-info img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.transactions-table .item-info span {
+    font-weight: bold;
+    color: var(--text-light);
+}
+
+/* Styles for action icons in tables (download, edit, delete) */
+.transactions-table .btn-icon {
+    background-color: transparent;
+    border: none;
+    color: var(--secondary-purple); /* Default color for action icons */
+    padding: 5px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.transactions-table .btn-icon:hover {
+    color: var(--primary-purple);
+}
+
+/* Specific buttons for editing/deleting beats for sale */
+.transactions-table .edit-beat-btn {
+    color: #FFC107; /* Yellow for edit */
+}
+.transactions-table .edit-beat-btn:hover {
+    color: #E0A800;
+}
+
+.transactions-table .delete-beat-btn {
+    color: var(--alert-error); /* Red for delete */
+}
+.transactions-table .delete-beat-btn:hover {
+    color: #c82333;
+}
+
+.empty-message {
+    text-align: center;
+    font-size: 1.1em;
+    color: #bbb;
+    margin: 30px 0;
+}
+
+.empty-message + .btn { /* To align the "Começar a Vender" button */
+    display: block;
+    width: fit-content;
+    margin: 20px auto;
+}
+
+/* Media Queries for table responsiveness */
+@media (max-width: 768px) {
+    .tabs {
+        flex-direction: column;
+        align-items: center;
+    }
+    .tab-button {
+        width: 100%;
+        max-width: 300px;
+    }
+    .transactions-table th, .transactions-table td {
+        padding: 10px;
+        font-size: 0.9em;
+    }
+    .transactions-table .item-info img {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* --- Estilos para o Formulário Geral (create-edit-beat.ejs) --- */
+.general-form {
+    background-color: var(--card-bg); /* Fundo dos cards */
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    margin: 30px auto; /* Centraliza o formulário */
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--text-light);
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="url"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-gray);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-light);
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group input[type="url"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--input-border-focus);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(165, 105, 189, 0.3); /* Sombra suave para foco */
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.85em;
+    color: #aaa;
+}
+
+.general-form .btn {
+    margin-right: 10px; /* Espaçamento entre os botões */
+}
+
+/* Container para o botão "Adicionar Novo Beat" na tabela */
+.add-new-beat-action {
+    text-align: right; /* Alinha o botão à direita */
+    margin-bottom: 20px;
+}
+
+.add-new-beat-action .add-beat-btn {
+    padding: 10px 20px; /* Aumenta o padding do botão */
+    font-size: 1.1em;
+}
+
+/* Ícone no botão */
+.add-new-beat-action .add-beat-btn i {
+    margin-right: 8px;
+}
