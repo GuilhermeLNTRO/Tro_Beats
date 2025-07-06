@@ -49,12 +49,12 @@ const newReleasesData = [
 ];
 
 const userData = {
-    username: 'Guilherme',
+    username: 'Guilherme Cezar',
     email: 'guilhermecezartec@gmail.com',
     profilePic: '/img/default-profile.png',
     isBeatmaker: true,
     producerName: 'Lil.Nego',
-    bio: 'Sou um produtor musical apaixonado por criar batidas de Trap e Drill. Sempre buscando novos sons e inspirações.'
+    bio: '...'
 };
 
 // --- Dados de Exemplo para Compras e Vendas (Beatmaker) ---
