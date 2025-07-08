@@ -2,25 +2,30 @@ const express = require('express');
 const path = require('path');
 const session = require('express-session');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; // Define a porta do servidor
 
 // --- Configurações do Express ---
+// Configura o EJS como seu view engine
 app.set('view engine', 'ejs');
+// Define o diretório das suas views (.ejs)
 app.set('views', path.join(__dirname, 'views'));
+// Serve arquivos estáticos (CSS, JS, imagens) da pasta 'public'
 app.use(express.static(path.join(__dirname, 'public')));
+// Middleware para parsear dados de formulários HTML (urlencoded)
 app.use(express.urlencoded({ extended: true }));
+// Middleware para parsear corpos de requisição JSON (necessário para APIs)
 app.use(express.json());
 
 // --- Configuração da Sessão ---
 app.use(session({
     secret: 'sua_super_chave_secreta_e_unica_aqui_para_a_sessao', // MUDE ISSO EM PRODUÇÃO! Use uma string longa e aleatória.
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 'false' para HTTP (dev), 'true' para HTTPS (prod)
+    resave: false, // Evita salvar a sessão se não houver modificações
+    saveUninitialized: true, // Salva sessões novas e não modificadas
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 'false' para HTTP (dev), 'true' para HTTPS (prod). maxAge em ms (1 dia)
 }));
 
 // --- Middleware para popular o carrinho com dados de exemplo na sessão ---
-// Isso garante que você sempre tenha itens no carrinho para testar
+// Isso garante que você sempre tenha itens no carrinho para testar a remoção e adição.
 app.use((req, res, next) => {
     if (!req.session.cart) {
         req.session.cart = [
@@ -33,28 +38,29 @@ app.use((req, res, next) => {
 });
 
 // --- Dados de Exemplo para a Home (Trending Beats e New Releases) ---
+// ATENÇÃO: audioUrl agora aponta para a rota protegida /play-beat/:id
 const trendingBeatsData = [
-    { id: 'beat1', title: 'Vision | 21savage x N...', artist: 'nohookz', price: 25.00, cover: '/img/beat1_cover.jpg', featured: false },
-    { id: 'beat2', title: 'Ready | Humho x N...', artist: 'BIYO', price: 87.95, cover: '/img/beat2_cover.jpg', featured: false },
-    { id: 'beat3', title: 'Time Back (Prod. b...', artist: 'kotsuru', price: 20.95, cover: '/img/beat3_cover.jpg', featured: false },
-    { id: 'beat4', title: '100 BEATS FOR R$100', artist: 'waynocat', price: 100.00, cover: '/img/beat4_cover.jpg', featured: false },
-    { id: 'beat5', title: 'MURDER - 1+9 FREE', artist: 'Gotenkeyy', price: 40.99, cover: '/img/beat5_cover.jpg', featured: false },
-    { id: 'beat6', title: 'Rise (Pop)', artist: 'rabbel', price: 59.95, cover: '/img/beat6_cover.jpg', featured: false }
+    { id: 'beat1', title: 'Vision | 21savage x N...', artist: 'nohookz', price: 25.00, cover: '/img/beat1_cover.jpg', featured: false, audioUrl: '/play-beat/beat1' },
+    { id: 'beat2', title: 'Ready | Humho x N...', artist: 'BIYO', price: 87.95, cover: '/img/beat2_cover.jpg', featured: false, audioUrl: '/play-beat/beat2' },
+    { id: 'beat3', title: 'Time Back (Prod. b...', artist: 'kotsuru', price: 20.95, cover: '/img/beat3_cover.jpg', featured: false, audioUrl: '/play-beat/beat3' },
+    { id: 'beat4', title: '100 BEATS FOR R$100', artist: 'waynocat', price: 100.00, cover: '/img/beat4_cover.jpg', featured: false, audioUrl: '/play-beat/beat4' },
+    { id: 'beat5', title: 'MURDER - 1+9 FREE', artist: 'Gotenkeyy', price: 40.99, cover: '/img/beat5_cover.jpg', featured: false, audioUrl: '/play-beat/beat5' },
+    { id: 'beat6', title: 'Rise (Pop)', artist: 'rabbel', price: 59.95, cover: '/img/beat6_cover.jpg', featured: false, audioUrl: '/play-beat/beat6' }
 ];
 
 const newReleasesData = [
-    { id: 'beat7', title: 'New Vibe (Chill Hop)', artist: 'producerX', price: 18.00, cover: '/img/new1-cover.jpg' },
-    { id: 'beat8', title: 'Dark Trap Anthem', artist: 'beatlord', price: 35.00, cover: '/img/new2-cover.jpg' },
-    { id: 'beat9', title: 'Summer Groove', artist: 'sunnymusic', price: 22.50, cover: '/img/new3-cover.jpg' }
+    { id: 'beat7', title: 'New Vibe (Chill Hop)', artist: 'producerX', price: 18.00, cover: '/img/new1-cover.jpg', audioUrl: '/play-beat/new1' },
+    { id: 'beat8', title: 'Dark Trap Anthem', artist: 'beatlord', price: 35.00, cover: '/img/new2-cover.jpg', audioUrl: '/play-beat/new2' },
+    { id: 'beat9', title: 'Summer Groove', artist: 'sunnymusic', price: 22.50, cover: '/img/new3-cover.jpg', audioUrl: '/play-beat/new3' }
 ];
 
 const userData = {
-    username: 'Guilherme Cezar',
+    username: 'Guilherme',
     email: 'guilhermecezartec@gmail.com',
     profilePic: '/img/default-profile.png',
-    isBeatmaker: true,
+    isBeatmaker: true, // Define se o usuário é um beatmaker para testar as funcionalidades
     producerName: 'Lil.Nego',
-    bio: '...'
+    bio: 'Sou um produtor musical apaixonado por criar batidas de Trap e Drill. Sempre buscando novos sons e inspirações.'
 };
 
 // --- Dados de Exemplo para Compras e Vendas (Beatmaker) ---
@@ -75,13 +81,12 @@ const userPurchasesData = [
     }
 ];
 
-// O array beatmakerBeatsForSale será o "banco de dados" para operações de CRUD
-// ATENÇÃO: Em um app real, estes dados viriam de um banco de dados persistente.
+// O array beatmakerBeatsForSale é declarado com 'let' para permitir modificações (CRUD)
 let beatmakerBeatsForSale = [
-    { id: 'mybeat01', title: 'Sunset Trap', genre: 'Trap', price: 45.00, cover: '/img/mybeat_sunset.jpg', status: 'À Venda', salesCount: 1 },
-    { id: 'mybeat02', title: 'Drill Aggressive', genre: 'Drill', price: 60.00, cover: '/img/mybeat_drill.jpg', status: 'Rascunho', salesCount: 0 },
-    { id: 'mybeat03', title: 'Lo-Fi Chill Study', genre: 'Lo-Fi', price: 30.00, cover: '/img/mybeat_lofi.jpg', status: 'À Venda', salesCount: 1},
-    { id: 'mybeat04', title: 'Boom Bap Groove', genre: 'Boom Bap', price: 50.00, cover: '/img/mybeat_boombap.jpg', status: 'Rascunho', salesCount: 0 }
+    { id: 'mybeat01', title: 'Sunset Trap', genre: 'Trap', price: 45.00, cover: '/img/mybeat_sunset.jpg', status: 'À Venda', salesCount: 1, audioUrl: '/play-beat/mybeat01' },
+    { id: 'mybeat02', title: 'Drill Aggressive', genre: 'Drill', price: 60.00, cover: '/img/mybeat_drill.jpg', status: 'Rascunho', salesCount: 0, audioUrl: '/play-beat/mybeat02' },
+    { id: 'mybeat03', title: 'Lo-Fi Chill Study', genre: 'Lo-Fi', price: 30.00, cover: '/img/mybeat_lofi.jpg', status: 'À Venda', salesCount: 1, audioUrl: '/play-beat/mybeat03' },
+    { id: 'mybeat04', title: 'Boom Bap Groove', genre: 'Boom Bap', price: 50.00, cover: '/img/mybeat_boombap.jpg', status: 'Rascunho', salesCount: 0, audioUrl: '/play-beat/mybeat04' }
 ];
 
 const beatmakerSalesData = [
@@ -106,6 +111,7 @@ const beatmakerSalesData = [
 
 // --- ROTAS DA APLICAÇÃO ---
 
+// Rota da Página Inicial
 app.get('/', (req, res) => {
     res.render('index', {
         trendingBeats: trendingBeatsData,
@@ -113,10 +119,12 @@ app.get('/', (req, res) => {
     });
 });
 
+// Rota GET para Cadastro (Exibir Formulário)
 app.get('/register', (req, res) => {
     res.render('register', { messages: {} });
 });
 
+// Rota POST para Cadastro (Processar Formulário)
 app.post('/register', (req, res) => {
     const { username, email, password, confirm_password, is_beatmaker, producer_name, bio } = req.body;
     let errors = {};
@@ -138,13 +146,16 @@ app.post('/register', (req, res) => {
     res.render('login', { messages: { success: 'Cadastro realizado com sucesso! Faça login para continuar.' } });
 });
 
+// Rota GET para Login (Exibir Formulário)
 app.get('/login', (req, res) => {
     res.render('login', { messages: {} });
 });
 
+// Rota POST para Login (Processar Formulário)
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
+    // Simulação de login: Se as credenciais forem corretas, redireciona para o perfil.
     if (email === 'guilhermecezartec@gmail.com' && password === '123456') {
         res.redirect('/perfil');
     } else {
@@ -152,10 +163,12 @@ app.post('/login', (req, res) => {
     }
 });
 
+// Rota para a Página de Catálogo (a ser implementada)
 app.get('/catalogo', (req, res) => {
     res.send('Página de Catálogo (a ser implementada)');
 });
 
+// Rota para a Página de Perfil
 app.get('/perfil', (req, res) => {
     res.render('perfil', { user: userData });
 });
@@ -208,10 +221,18 @@ app.post('/carrinho/adicionar', (req, res) => {
     res.status(200).json({ message: 'Item adicionado ao carrinho com sucesso!', cartCount: cart.length });
 });
 
+// Rota para a página 'Começar a Vender'
+// Agora redireciona para o formulário de adicionar novo beat se o usuário for beatmaker
 app.get('/vender', (req, res) => {
-    res.send('Página Começar a Vender (a ser implementada)');
+    // Em um app real, você verificaria a autenticação e o status de beatmaker do usuário
+    if (userData.isBeatmaker) { // Usando userData global para simulação
+        res.redirect('/vender-beat/novo');
+    } else {
+        // Se o usuário não for beatmaker, pode redirecionar para uma página de informações
+        // ou exibir uma mensagem.
+        res.send('Para começar a vender, você precisa ser um Beatmaker registrado.');
+    }
 });
-
 
 // Rota para a página "Minhas Compras e Vendas"
 app.get('/meus-negocios', (req, res) => {
@@ -259,7 +280,8 @@ app.post('/api/beats', (req, res) => {
         price: parseFloat(price),
         cover: cover || '/img/default_beat_cover.jpg',
         status: status || 'Rascunho',
-        salesCount: 0
+        salesCount: 0,
+        audioUrl: `/play-beat/${newBeatId}` // Define a URL de áudio protegida para o novo beat
     };
 
     beatmakerBeatsForSale.push(newBeat); // Adiciona ao array de beats à venda
@@ -284,6 +306,7 @@ app.put('/api/beats/:id', (req, res) => {
             price: price !== undefined ? parseFloat(price) : beatmakerBeatsForSale[beatIndex].price,
             cover: cover !== undefined ? cover : beatmakerBeatsForSale[beatIndex].cover,
             status: status !== undefined ? status : beatmakerBeatsForSale[beatIndex].status
+            // audioUrl não é atualizado aqui, assume que é fixo pelo ID
         };
         console.log(`Beat ${beatIdToUpdate} atualizado:`, beatmakerBeatsForSale[beatIndex]);
         res.status(200).json({ message: 'Beat atualizado com sucesso!', beat: beatmakerBeatsForSale[beatIndex] });
@@ -307,8 +330,49 @@ app.delete('/api/beats/:id', (req, res) => {
     }
 });
 
+// --- ROTA PROTEGIDA PARA SERVIR ARQUIVOS DE ÁUDIO ---
+// Esta rota serve os arquivos de áudio de uma pasta privada, impedindo download direto via URL pública.
+app.get('/play-beat/:beatId', (req, res) => {
+    const beatId = req.params.beatId;
+
+    // Em um cenário real, você faria verificações de permissão aqui:
+    // 1. O usuário está logado?
+    // 2. O usuário tem permissão para ouvir este beat (ex: beat é público, ou usuário o comprou)?
+    // Para este exemplo, vamos permitir a audição de qualquer beat existente nos dados.
+
+    // Encontra o beat em todos os seus dados de exemplo
+    const allBeats = [...trendingBeatsData, ...newReleasesData, ...beatmakerBeatsForSale];
+    const foundBeat = allBeats.find(beat => String(beat.id) === String(beatId));
+
+    if (foundBeat) {
+        // Constrói o caminho completo para o arquivo de áudio na pasta 'private_audio'
+        // É crucial que esta pasta NÃO esteja dentro de 'public'.
+        const audioFilePath = path.join(__dirname, 'private_audio', `${beatId}.mp3`);
+
+        // Envia o arquivo. Por padrão, res.sendFile não define Content-Disposition: attachment,
+        // o que permite que o navegador o reproduza sem forçar o download.
+        res.sendFile(audioFilePath, (err) => {
+            if (err) {
+                console.error(`Erro ao servir o arquivo de áudio ${audioFilePath}:`, err);
+                // Se o arquivo não for encontrado no servidor, envia 404
+                if (err.code === 'ENOENT') {
+                    return res.status(404).send('Arquivo de áudio não encontrado.');
+                }
+                // Para outros erros, envia 500
+                res.status(500).send('Erro interno do servidor ao tentar tocar o beat.');
+            }
+        });
+    } else {
+        res.status(404).send('Beat não encontrado.');
+    }
+});
+
 
 // --- Inicialização do Servidor ---
 app.listen(PORT, () => {
     console.log(`Servidor TROBeats rodando em http://localhost:${PORT}`);
+    console.log(`Acesse a página inicial em: http://localhost:${PORT}/`);
+    console.log(`Acesse o carrinho de exemplo em: http://localhost:${PORT}/carrinho`);
+    console.log(`Acesse o perfil de exemplo (beatmaker) em: http://localhost:${PORT}/perfil`);
+    console.log(`Acesse as transações de exemplo em: http://localhost:${PORT}/meus-negocios`);
 });

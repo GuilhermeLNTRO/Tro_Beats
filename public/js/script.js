@@ -29,9 +29,4 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(`"${beatTitle}" adicionado ao carrinho! (Lógica de carrinho a ser implementada!)`);
         });
     });
-
-    // Você pode adicionar mais funcionalidades aqui:
-    // - Abrir/fechar menus responsivos em telas pequenas (se não for feito puramente com CSS)
-    // - Validação de formulários
-    // - Interações mais complexas com a UI
 });

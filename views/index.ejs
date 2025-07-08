@@ -11,10 +11,10 @@
     <header class="header">
         <div class="container header-content">
             <div class="logo">
-                <a href="/" aria-label="Página Inicial"> <h1>TROBeats</h1>
-                </a>
+                <a href="/" aria-label="Página Inicial"> <h1>TROBeats</h1> </a>
             </div>
             <div class="header-actions">
+                <a href="/vender" class="btn btn-primary">Começar a Vender</a>
                 <a href="/register" class="btn btn-secondary">Cadastre-se</a>
                 <a href="/login" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
                 <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
@@ -35,9 +35,9 @@
                                 <p class="artist"><%= beat.artist %></p>
                                 <div class="beat-actions">
                                     <span class="price">R$<%= parseFloat(beat.price).toFixed(2).replace('.', ',') %></span>
-                                    <button class="btn-icon" aria-label="Ouvir Beat"><i class="fas fa-play"></i></button>
-                                    <button class="btn-icon" aria-label="Baixar Beat"><i class="fas fa-download"></i></button>
-                                    
+                                    <button class="btn-icon play-beat-btn" aria-label="Ouvir Beat" data-audio-url="<%= beat.audioUrl %>">
+                                        <i class="fas fa-play"></i>
+                                    </button>
                                     <button class="btn btn-primary add-to-cart-btn"
                                             data-id="<%= beat.id %>"
                                             data-title="<%= beat.title %>"
@@ -66,9 +66,12 @@
                                 <p class="artist"><%= beat.artist %></p>
                                 <div class="beat-actions">
                                     <span class="price">R$<%= parseFloat(beat.price).toFixed(2).replace('.', ',') %></span>
-                                    <button class="btn-icon" aria-label="Ouvir Beat"><i class="fas fa-play"></i></button>
-                                    <button class="btn-icon" aria-label="Baixar Beat"><i class="fas fa-download"></i></button>
-
+                                    {/* Botão Ouvir Beat com data-audio-url */}
+                                    <button class="btn-icon play-beat-btn" aria-label="Ouvir Beat" data-audio-url="<%= beat.audioUrl %>">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    {/* Botão de download REMOVIDO para impedir download direto */}
+                                    {/* <button class="btn-icon" aria-label="Baixar Beat"><i class="fas fa-download"></i></button> */}
                                     <button class="btn btn-primary add-to-cart-btn"
                                             data-id="<%= beat.id %>"
                                             data-title="<%= beat.title %>"
@@ -92,8 +95,16 @@
         </div>
     </footer>
 
-    <script src="/js/script.js"></script> 
-    
+    {/* O elemento de áudio visível (controles) */}
+    <div class="audio-player-container">
+        <audio id="audioPlayer" controls></audio>
+        <div class="current-playing-info">
+            Tocando: <span id="currentBeatTitle">Nenhum beat</span>
+        </div>
+    </div>
+
+    <script src="/js/script.js"></script>
     <script src="/js/add-to-cart.js"></script>
+    <script src="/js/player.js"></script>
 </body>
 </html>
