@@ -6,13 +6,14 @@
     --secondary-purple: #A569BD; /* Roxo secundário para destaques */
     --border-gray: #333;
     --header-bg: #0d0d0d; /* Cor específica do seu header original */
-    --card-bg: #2b2b2b; /* Cor específica do seu card original */
+    --card-bg: #2b2b2b; /* Cor de fundo padrão para cards e formulários */
     --search-bg: #2b2b2b; /* Fundo para a barra de pesquisa */
-    --search-button-hover: #6a0dad; /* Hover para o botão de pesquisa */
-    --alert-error: #dc3545; /* Vermelho para erros (para botão de remover) */
+    --search-button-hover: #6a0dad; /* Hover para o botão de pesquisa e outros primários */
+    --alert-error: #dc3545; /* Vermelho para erros e remoção */
     --alert-success: #28a745; /* Verde para sucesso */
-    --input-bg: #2b2b2b; /* Fundo para inputs */
-    --input-border-focus: #A569BD; /* Borda do input ao focar */
+    --input-bg: #3a3a3a; /* Fundo para inputs */
+    --input-border-focus: var(--primary-purple); /* Borda do input ao focar */
+    --form-container-bg: #0d0d0d; /* Fundo para o container principal do formulário */
 }
 
 /* --- Reset Básico e Estilos Gerais --- */
@@ -43,9 +44,13 @@ a {
     transition: color 0.3s ease; /* Adicionado para links */
 }
 
+a:hover {
+    color: var(--primary-purple); /* Cor para hover de links gerais */
+}
+
 /* --- Header --- */
 .header {
-    background-color: var(--header-bg); /* Usando variável para consistência */
+    background-color: var(--header-bg);
     padding: 15px 0;
     border-bottom: 1px solid var(--border-gray);
 }
@@ -64,9 +69,6 @@ a {
     color: var(--text-light);
     white-space: nowrap;
 }
-
-/* Removido .main-nav, pois não estava no HTML que você forneceu recentemente */
-/* Se você ainda usa navegação principal, reincorpore-a com cuidado. */
 
 .header-actions {
     display: flex;
@@ -106,7 +108,7 @@ a {
 }
 
 .search-bar button:hover {
-    background-color: var(--search-button-hover); /* Usando variável */
+    background-color: var(--search-button-hover);
 }
 
 /* --- Botões Gerais (btn, btn-primary, btn-secondary) --- */
@@ -115,19 +117,20 @@ a {
     border-radius: 5px;
     text-decoration: none;
     font-weight: bold;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Adicionado border-color */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     white-space: nowrap;
-    cursor: pointer; /* Garante cursor de ponteiro para todos os .btn */
+    cursor: pointer;
+    display: inline-block; /* Garante que os botões se comportem como blocos inline */
 }
 
 .btn-primary {
     background-color: var(--primary-purple);
     color: var(--text-light);
-    border: none; /* Garante que não tenha borda */
+    border: none;
 }
 
 .btn-primary:hover {
-    background-color: var(--search-button-hover); /* O mesmo tom de hover do search-button */
+    background-color: var(--search-button-hover);
 }
 
 .btn-secondary {
@@ -153,38 +156,38 @@ a {
     color: var(--primary-purple);
 }
 
-/* --- Balão de Contagem do Carrinho (NOVO) --- */
+/* --- Balão de Contagem do Carrinho --- */
 .cart-icon {
     position: relative;
-    display: inline-block; /* Importante para que o position:absolute funcione para o span */
+    display: inline-block;
 }
 
 .cart-icon .cart-count {
     position: absolute;
-    top: -8px; /* Ajuste para cima */
-    right: -12px; /* Ajuste para a direita */
-    background-color: var(--alert-error); /* Cor de destaque para a notificação */
+    top: -8px;
+    right: -12px;
+    background-color: var(--alert-error);
     color: var(--text-light);
     font-size: 0.7em;
     font-weight: bold;
     border-radius: 50%;
     padding: 3px 7px;
-    min-width: 20px; /* Garante um tamanho mínimo para balões de 1 dígito */
+    min-width: 20px;
     text-align: center;
-    line-height: 1; /* Alinha o texto verticalmente */
-    display: none; /* Escondido por padrão, mostrado por JS */
-    border: 1px solid var(--bg-dark); /* Borda para contraste com o fundo */
+    line-height: 1;
+    display: none;
+    border: 1px solid var(--bg-dark);
 }
 
-
-/* --- Main Content - Seções --- */
+/* --- Main Content - Seções Gerais --- */
 .main-content {
-    padding-top: 20px; /* Mantido do seu código */
-    min-height: calc(100vh - 140px); /* Ajustado para preencher a tela */
+    min-height: calc(100vh - 140px); /* Ajustado para player e footer */
+    padding-top: 20px;
+    padding-bottom: 70px; /* Espaço para o player fixo na base */
 }
 
 .section-padding {
-    padding: 40px 0; /* Mantido do seu código */
+    padding: 40px 0;
 }
 
 h2 {
@@ -195,7 +198,7 @@ h2 {
     font-weight: bold;
 }
 
-/* --- Beat Grid --- */
+/* --- Beat Grid (Home Page) --- */
 .beat-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -204,11 +207,11 @@ h2 {
 }
 
 .beat-card {
-    background-color: var(--card-bg); /* Usando variável */
+    background-color: var(--card-bg);
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; /* Adicionado border-color */
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     border: 1px solid var(--border-gray);
     display: flex;
     flex-direction: column;
@@ -218,7 +221,6 @@ h2 {
 .beat-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-    /* background-color: #333333; -- Não é necessário se o card-bg é mais escuro, evite mudança brusca */
 }
 
 .beat-card.featured-card {
@@ -238,13 +240,12 @@ h2 {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    /* justify-content: space-between; -- Removido, beat-actions terá margin-top: auto */
 }
 
 .beat-info h3 {
     margin: 0 0 5px 0;
     font-size: 18px;
-    color: var(--text-light); /* Cor original do título do beat */
+    color: var(--text-light);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -262,8 +263,8 @@ h2 {
 .beat-actions {
     display: flex;
     align-items: center;
-    flex-wrap: wrap; /* Permite que os itens quebrem a linha */
-    gap: 10px; /* Espaçamento entre os itens de ação */
+    flex-wrap: wrap;
+    gap: 10px;
     margin-top: auto; /* Empurra os itens para o final do beat-info */
 }
 
@@ -285,7 +286,6 @@ h2 {
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s ease, color 0.3s ease;
-    /* margin-left: 5px; -- Removido, usando gap no pai */
 }
 
 .btn-icon:hover {
@@ -293,14 +293,13 @@ h2 {
     color: var(--text-light);
 }
 
-/* --- Botão "Adicionar ao Carrinho" (NOVO) --- */
+/* --- Botão "Adicionar ao Carrinho" (Home Page) --- */
 .add-to-cart-btn {
     width: 100%; /* Faz com que ocupe a largura total */
     margin-top: 10px; /* Espaçamento acima do botão */
-    /* Garante que o .btn-primary seja aplicado com sucesso */
-    /* padding, font-size, etc. serão herdados de .btn e .btn-primary */
 }
 
+/* --- Links "Ver Mais" (Home Page) --- */
 .see-more {
     display: block;
     text-align: center;
@@ -313,10 +312,309 @@ h2 {
 }
 
 .see-more:hover {
-    color: var(--search-button-hover); /* Usando variável */
+    color: var(--search-button-hover);
 }
 
-/* --- Cart Page Specific Styles --- */
+/* --- Player de Áudio Fixo (Home Page e Outros) --- */
+.audio-player-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--header-bg);
+    padding: 10px 20px;
+    border-top: 1px solid var(--border-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.audio-player-container audio {
+    width: 70%;
+    max-width: 600px;
+    outline: none;
+}
+
+/* Estilização básica para o controle de áudio nativo (pode variar entre navegadores) */
+.audio-player-container audio::-webkit-media-controls-panel {
+    background-color: var(--card-bg);
+    color: var(--text-light);
+}
+.audio-player-container audio::-webkit-media-controls-play-button,
+.audio-player-container audio::-webkit-media-controls-current-time-display,
+.audio-player-container audio::-webkit-media-controls-time-remaining-display {
+    color: var(--primary-purple);
+}
+.audio-player-container audio::-webkit-media-controls-timeline {
+    background-color: var(--border-gray);
+    border-radius: 5px;
+}
+.audio-player-container audio::-webkit-media-controls-volume-slider {
+    background-color: var(--secondary-purple);
+}
+
+.current-playing-info {
+    color: var(--text-light);
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.current-playing-info span {
+    font-weight: bold;
+    color: var(--primary-purple);
+}
+
+/* --- Estilos para Páginas de Formulário (Cadastro/Login/Criar-Editar Beat) --- */
+.form-page, .form-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 120px - 40px); /* Ajusta altura para cabeçalho, rodapé e padding */
+    padding: 40px 0;
+}
+
+.general-form, .form-container {
+    background-color: var(--form-container-bg); /* Fundo mais escuro para o container do formulário */
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    border: 1px solid var(--border-gray);
+    margin: 30px auto; /* Centraliza o formulário */
+}
+
+.form-container h2 {
+    color: var(--primary-purple);
+    margin-bottom: 25px;
+    font-size: 28px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--text-light);
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group input[type="url"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-gray);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-light);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus,
+.form-group input[type="number"]:focus,
+.form-group input[type="url"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--input-border-focus);
+    box-shadow: 0 0 0 2px rgba(165, 105, 189, 0.3);
+}
+
+.form-group textarea {
+    resize: vertical; /* Permite redimensionar verticalmente */
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    justify-content: flex-start;
+}
+
+.checkbox-group input[type="checkbox"] {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-purple);
+}
+
+.checkbox-group label {
+    margin-bottom: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.beatmaker-fields-hidden {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, opacity 0.4s ease-out;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.beatmaker-fields-visible {
+    max-height: 300px;
+    opacity: 1;
+    pointer-events: all;
+    transition: max-height 0.6s ease-in, opacity 0.6s ease-in;
+}
+
+.btn-full-width {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+.form-footer-text {
+    margin-top: 25px;
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
+.form-footer-text a {
+    font-weight: bold;
+    color: var(--primary-purple);
+}
+
+.form-footer-text a:hover {
+    text-decoration: underline;
+}
+
+/* --- Mensagens de Alerta (Sucesso/Erro) --- */
+.alert {
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.alert.error-message {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: var(--alert-error);
+    border: 1px solid var(--alert-error);
+}
+
+.alert.success-message {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: var(--alert-success);
+    border: 1px solid var(--alert-success);
+}
+
+/* --- Estilos para a Página de Perfil --- */
+.profile-page .profile-section {
+    background-color: var(--form-container-bg);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-gray);
+    padding: 30px;
+    text-align: center;
+}
+
+.profile-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.profile-page h2 {
+    color: var(--primary-purple);
+    margin-bottom: 30px;
+    font-size: 32px;
+}
+
+.profile-header {
+    margin-bottom: 30px;
+}
+
+.profile-pic {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--secondary-purple);
+    margin-bottom: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.profile-header h3 {
+    margin: 0 0 5px 0;
+    font-size: 28px;
+    color: var(--text-light);
+}
+
+.profile-header .user-email {
+    color: #bbb;
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.profile-header .producer-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-purple);
+    margin-top: 5px;
+}
+
+.profile-details {
+    background-color: var(--bg-dark); /* Fundo ligeiramente mais claro para os detalhes */
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid var(--border-gray);
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.profile-details h4 {
+    color: var(--secondary-purple);
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+
+.profile-details p {
+    color: #ccc;
+    line-height: 1.8;
+}
+
+.profile-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.profile-actions .btn-danger {
+    background-color: var(--alert-error);
+    color: var(--text-light);
+    border: none;
+}
+
+.profile-actions .btn-danger:hover {
+    background-color: #a02c37;
+}
+
+/* --- Estilos para a Página do Carrinho de Compras --- */
 .cart-page .cart-table-container {
     overflow-x: auto;
     margin-bottom: 30px;
@@ -328,20 +626,27 @@ h2 {
     width: 100%;
     border-collapse: collapse;
     min-width: 600px;
+    background-color: var(--card-bg); /* Consistente com card-bg */
+    border: 1px solid var(--border-gray);
+    border-radius: 10px;
 }
 
 .cart-table th, .cart-table td {
-    text-align: left;
     padding: 15px;
+    text-align: left;
     border-bottom: 1px solid var(--border-gray);
 }
 
 .cart-table th {
-    background-color: var(--secondary-purple);
+    background-color: #3a3a3a; /* Fundo do cabeçalho da tabela */
     color: var(--text-light);
     font-weight: bold;
     text-transform: uppercase;
     font-size: 0.9em;
+}
+
+.cart-table td {
+    color: #ccc;
 }
 
 .cart-table tbody tr:last-child td {
@@ -349,7 +654,7 @@ h2 {
 }
 
 .cart-table tbody tr:hover {
-    background-color: #333333; /* Fundo no hover da linha da tabela */
+    background-color: #333333;
 }
 
 .cart-item-info {
@@ -366,17 +671,14 @@ h2 {
 }
 
 .cart-item-info h3 {
-    margin: 0;
+    margin: 0 0 5px 0;
     font-size: 1.1em;
+    color: var(--text-light);
 }
 
 .cart-item-info .artist {
-    font-size: 0.8em;
-    color: #aaa;
-}
-
-.cart-table td:nth-child(2) {
-    font-weight: bold;
+    font-size: 14px;
+    color: #bbb;
 }
 
 .item-quantity {
@@ -390,21 +692,57 @@ h2 {
     min-width: 40px;
 }
 
-.subtotal, .total-price {
+.subtotal {
     font-weight: bold;
     color: var(--primary-purple);
+    white-space: nowrap;
+}
+
+.btn-remove {
+    background-color: var(--alert-error); /* Vermelho */
+    color: var(--text-light);
+    border: none;
+}
+
+.btn-remove:hover {
+    background-color: #b71c1c; /* Vermelho mais escuro */
+}
+
+/* Removendo estilos duplicados do botão de remover */
+.btn-icon.btn-remove {
+    background-color: transparent; /* Garante que não tenha fundo */
+    color: var(--alert-error);
+    font-size: 1.4em;
+    transition: none; /* Sem transição de hover */
+    border: none; /* Garante que não tenha borda */
+}
+.btn-remove:hover,
+.btn-remove:focus,
+.btn-remove:active {
+    background-color: transparent;
+    color: var(--alert-error);
+    outline: none;
+    box-shadow: none;
+    transform: none;
+}
+.btn-remove i:hover {
+    color: var(--alert-error);
 }
 
 .total-row {
-    background-color: #333333; /* Fundo para a linha total */
     font-weight: bold;
+    font-size: 18px;
+    background-color: #333333; /* Fundo para a linha total */
 }
 
 .total-label {
     text-align: right;
     padding-right: 20px;
-    font-size: 1.2em;
-    color: var(--text-light);
+}
+
+.total-price {
+    color: var(--primary-purple);
+    white-space: nowrap;
 }
 
 .cart-actions {
@@ -412,52 +750,242 @@ h2 {
     justify-content: space-between;
     align-items: center;
     margin-top: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.cart-actions .btn {
+    padding: 12px 25px;
+    font-size: 16px;
 }
 
 .empty-cart-message {
     text-align: center;
-    font-size: 1.2em;
-    color: #bbb;
-    margin-top: 50px;
+    font-size: 18px;
+    color: #aaa;
+    margin-bottom: 20px;
+}
+
+/* --- Estilos para a Página de Transações (my-transactions.ejs) --- */
+.tabs {
+    display: flex;
+    justify-content: center;
     margin-bottom: 30px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-/* --- Botão de Remover Item (Carrinho) --- */
-.btn-icon.btn-remove {
-    color: var(--alert-error); /* Cor vermelha para remoção */
-    font-size: 1.4em; /* Ícone maior */
-    transition: none; /* Sem transição de hover */
-    background-color: transparent; /* Sem fundo */
-    /* Remover qualquer margin-left aqui se houver um específico */
+.tab-button {
+    background-color: var(--card-bg);
+    color: var(--text-light);
+    border: 1px solid var(--border-gray);
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    white-space: nowrap;
 }
 
-/* Remove qualquer efeito de hover ou active para o botão de remover */
-.btn-remove:hover,
-.btn-remove:focus,
-.btn-remove:active {
+.tab-button:hover {
+    background-color: var(--secondary-purple);
+    border-color: var(--primary-purple);
+}
+
+.tab-button.active {
+    background-color: var(--primary-purple);
+    border-color: var(--primary-purple);
+    color: var(--text-light);
+}
+
+.tab-button.active:hover {
+    background-color: var(--primary-purple);
+}
+
+.tab-content {
+    display: none;
+    padding: 20px 0;
+    margin-top: 20px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-content h3 {
+    font-size: 1.8em;
+    margin-bottom: 25px;
+    color: var(--primary-purple);
+    text-align: center;
+}
+
+.transactions-table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-gray);
+    border-radius: 8px;
+    background-color: var(--card-bg);
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+
+.transactions-table th, .transactions-table td {
+    text-align: left;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-gray);
+}
+
+.transactions-table th {
+    background-color: var(--secondary-purple);
+    color: var(--text-light);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+.transactions-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.transactions-table tbody tr:hover {
+    background-color: #333333;
+}
+
+.transactions-table .item-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.transactions-table .item-info img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.transactions-table .item-info span {
+    font-weight: bold;
+    color: var(--text-light);
+}
+
+.transactions-table .btn-icon {
     background-color: transparent;
-    color: var(--alert-error); /* Mantém a cor vermelha */
-    outline: none;
-    box-shadow: none;
-    transform: none;
+    border: none;
+    color: var(--secondary-purple);
+    padding: 5px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: color 0.3s ease;
 }
-.btn-remove i:hover { /* Garante que o ícone em si não mude no hover */
+
+.transactions-table .btn-icon:hover {
+    color: var(--primary-purple);
+}
+
+.transactions-table .edit-beat-btn {
+    color: #FFC107;
+}
+.transactions-table .edit-beat-btn:hover {
+    color: #E0A800;
+}
+
+.transactions-table .delete-beat-btn {
     color: var(--alert-error);
 }
+.transactions-table .delete-beat-btn:hover {
+    color: #c82333;
+}
 
-
-/* --- Footer --- */
-.footer {
-    background-color: var(--header-bg); /* Consistente com o header */
-    padding: 20px 0;
+.empty-message {
     text-align: center;
-    border-top: 1px solid var(--border-gray);
-    margin-top: 40px;
-    font-size: 0.9em;
+    font-size: 1.1em;
+    color: #bbb;
+    margin: 30px 0;
+}
+
+.empty-message + .btn {
+    display: block;
+    width: fit-content;
+    margin: 20px auto;
+}
+
+/* --- Estilos para o Formulário Geral (create-edit-beat.ejs) --- */
+.general-form {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    margin: 30px auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--text-light);
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="url"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-gray);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-light);
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group input[type="url"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--input-border-focus);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(165, 105, 189, 0.3);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.85em;
     color: #aaa;
 }
 
-/* --- Media Queries (Responsividade) --- */
+.general-form .btn {
+    margin-right: 10px;
+}
+
+.add-new-beat-action {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.add-new-beat-action .add-beat-btn {
+    padding: 10px 20px;
+    font-size: 1.1em;
+}
+
+.add-new-beat-action .add-beat-btn i {
+    margin-right: 8px;
+}
+
+/* --- Media Queries para Responsividade --- */
 @media (max-width: 992px) {
     .header-content {
         flex-direction: column;
@@ -469,11 +997,15 @@ h2 {
         flex-wrap: wrap;
     }
     .search-bar {
-        max-width: none; /* Permite que a barra de pesquisa ocupe a largura total */
+        max-width: none;
         width: 100%;
     }
     .beat-grid {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+    .form-container, .general-form {
+        margin: 20px 15px; /* Ajusta margem para evitar bordas */
+        padding: 30px;
     }
 }
 
@@ -523,6 +1055,50 @@ h2 {
         padding: 10px 20px;
         font-size: 15px;
     }
+
+    /* Player de Áudio Fixo */
+    .audio-player-container {
+        flex-direction: column;
+        padding: 10px;
+        gap: 10px;
+    }
+    .audio-player-container audio {
+        width: 90%;
+        margin-bottom: 5px;
+    }
+    .current-playing-info {
+        max-width: 90%;
+        text-align: center;
+    }
+    .main-content { /* Ajuste para evitar que o conteúdo seja coberto pelo player */
+        padding-bottom: 100px; /* Aumentado para garantir espaço em mobile */
+    }
+
+    /* Transações */
+    .tabs {
+        flex-direction: column;
+        align-items: center;
+    }
+    .tab-button {
+        width: 100%;
+        max-width: 300px;
+    }
+    .transactions-table th, .transactions-table td {
+        padding: 10px;
+        font-size: 0.9em;
+    }
+    .transactions-table .item-info img {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Formulários */
+    .form-page, .form-section {
+        padding: 20px 0;
+    }
+    .general-form, .form-container {
+        padding: 30px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -566,10 +1142,6 @@ h2 {
         flex-direction: column;
         align-items: flex-start;
     }
-    .cart-item-info img {
-        width: 50px;
-        height: 50px;
-    }
     .cart-item-info h3 {
         font-size: 14px;
         margin-bottom: 3px;
@@ -587,928 +1159,16 @@ h2 {
         width: 100%;
         text-align: center;
     }
-}
 
-/* Estilos Específicos para Páginas de Formulário (Cadastro/Login) */
-.form-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 120px); /* Altura mínima para centralizar o formulário */
-    padding: 20px 0;
-}
-
-.form-container {
-    background-color: #2b2b2b; /* Cor de fundo do card do formulário */
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-    width: 100%;
-    max-width: 500px; /* Largura máxima para o formulário */
-    text-align: center;
-    border: 1px solid var(--border-gray);
-}
-
-.form-container h2 {
-    margin-top: 0;
-    margin-bottom: 30px;
-    font-size: 28px;
-    color: var(--text-light);
-}
-
-.register-form .form-group {
-    margin-bottom: 20px;
-    text-align: left; /* Alinha labels e inputs à esquerda */
-}
-
-.register-form label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #ccc;
-    font-size: 15px;
-}
-
-.register-form input[type="text"],
-.register-form input[type="email"],
-.register-form input[type="password"],
-.register-form textarea {
-    width: calc(100% - 24px); /* Considera o padding */
-    padding: 12px;
-    border: 1px solid #444;
-    border-radius: 5px;
-    background-color: #3a3a3a;
-    color: var(--text-light);
-    font-size: 16px;
-    transition: border-color 0.3s ease;
-}
-
-.register-form input[type="text"]:focus,
-.register-form input[type="email"]:focus,
-.register-form input[type="password"]:focus,
-.register-form textarea:focus {
-    border-color: var(--primary-purple);
-    outline: none;
-    box-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
-}
-
-.register-form textarea {
-    resize: vertical; /* Permite redimensionar verticalmente */
-}
-
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: 25px;
-    justify-content: flex-start; /* Alinha o checkbox à esquerda */
-}
-
-.checkbox-group input[type="checkbox"] {
-    margin-right: 10px;
-    width: 18px; /* Ajusta o tamanho do checkbox */
-    height: 18px;
-    accent-color: var(--primary-purple); /* Cor do checkbox quando marcado */
-}
-
-.checkbox-group label {
-    margin-bottom: 0;
-    font-weight: normal;
-    cursor: pointer;
-}
-
-/* Estilos para campos de beatmaker que aparecem/desaparecem */
-.beatmaker-fields-hidden {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-out, opacity 0.4s ease-out;
-    opacity: 0;
-    pointer-events: none; /* Impede interação quando oculto */
-}
-
-.beatmaker-fields-visible {
-    max-height: 300px; /* Altura suficiente para mostrar os campos */
-    opacity: 1;
-    pointer-events: all; /* Permite interação */
-    transition: max-height 0.6s ease-in, opacity 0.6s ease-in;
-}
-
-
-.btn-full-width {
-    width: 100%;
-    padding: 15px;
-    font-size: 18px;
-    margin-top: 20px;
-}
-
-.form-footer-text {
-    margin-top: 25px;
-    font-size: 15px;
-    color: #ccc;
-}
-
-.form-footer-text a {
-    color: var(--primary-purple);
-    font-weight: bold;
-    transition: color 0.3s ease;
-}
-
-.form-footer-text a:hover {
-    color: #6a0dad;
-}
-
-/* Mensagens de feedback (sucesso/erro) */
-.alert {
-    padding: 12px 20px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    font-weight: bold;
-    text-align: center;
-    font-size: 15px;
-}
-
-.error-message {
-    background-color: #f44336; /* Vermelho */
-    color: white;
-    border: 1px solid #d32f2f;
-}
-
-.success-message {
-    background-color: #4CAF50; /* Verde */
-    color: white;
-    border: 1px solid #388e3c;
-}
-
-
-/* Responsividade Geral */
-
-/* Para tablets e telas menores (768px e abaixo) */
-@media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px; /* Reduz o espaçamento entre os blocos */
-    }
-
-    .main-nav {
-        order: 2; /* Coloca a navegação abaixo do logo */
-        width: 100%;
-    }
-
-    .main-nav ul {
-        flex-wrap: wrap; /* Permite que os itens quebrem a linha */
-        justify-content: center;
-        margin-top: 10px;
-    }
-
-    .main-nav li {
-        margin: 5px 10px;
-    }
-
-    .header-actions {
-        order: 3; /* Coloca as ações abaixo da navegação */
-        flex-direction: column;
-        width: 100%;
-        margin-top: 15px;
-        gap: 10px;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .search-bar {
-        width: 90%; /* Ocupa mais largura em telas menores */
-        max-width: none; /* Remove a largura máxima */
-    }
-
-    .btn-primary, .btn-secondary { /* Aplicar também ao btn-secondary */
-        width: 90%; /* Botão ocupa quase toda a largura */
-        text-align: center;
-    }
-
-    .user-icon, .cart-icon {
-        margin: 0 10px; /* Espaçamento entre os ícones */
-    }
-
-    h2 {
-        font-size: 28px;
-    }
-
-    .beat-grid {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Ajusta o tamanho mínimo dos cards */
-        gap: 20px; /* Reduz o espaçamento entre os cards */
-    }
-
-    .beat-card img {
-        height: 180px;
-    }
-
-    /* Responsividade para o Formulário em tablets */
-    .form-container {
-        padding: 30px;
-    }
-
-    .form-container h2 {
-        font-size: 26px;
-    }
-}
-
-/* Para smartphones (480px e abaixo) */
-@media (max-width: 480px) {
-    .logo h1 {
-        font-size: 24px;
-    }
-
-    h2 {
-        font-size: 24px;
-        margin-bottom: 20px;
-    }
-
-    .beat-grid {
-        grid-template-columns: 1fr; /* Uma única coluna */
-        padding: 0 15px; /* Adiciona padding para evitar que os cards toquem as bordas */
-    }
-
-    .beat-card {
-        margin: 0 auto; /* Centraliza o card */
-        max-width: 300px; /* Define uma largura máxima para o card */
-    }
-
-    .beat-card img {
-        height: 160px;
-    }
-
-    .section-padding {
-        padding: 30px 0;
-    }
-
-    .search-bar input {
-        padding: 6px 10px;
-    }
-
-    .search-bar button {
-        padding: 6px 10px;
-    }
-
-    .btn-primary, .btn-secondary { /* Aplicar também ao btn-secondary */
-        padding: 8px 15px;
-        font-size: 14px;
-    }
-
-    .user-icon, .cart-icon {
-        font-size: 20px;
-    }
-
-    /* Responsividade para o Formulário em smartphones */
-    .form-container {
+    /* Formulários */
+    .general-form, .form-container {
         padding: 20px;
         margin: 0 10px;
     }
-
-    .form-container h2 {
-        font-size: 22px;
-    }
-
-    .register-form label {
-        font-size: 13px;
-    }
-
-    .register-form input[type="text"],
-    .register-form input[type="email"],
-    .register-form input[type="password"],
-    .register-form textarea {
-        padding: 8px;
-        font-size: 14px;
-    }
-
-    .btn-full-width {
-        padding: 10px;
-        font-size: 15px;
-    }
-
-    .form-footer-text {
-        font-size: 13px;
-    }
 }
-
-/* Estilos Específicos para a Página do Carrinho de Compras */
-
-.cart-page {
-    padding-top: 20px;
-}
-
-.cart-table-container {
-    overflow-x: auto; /* Permite rolagem horizontal em telas pequenas */
-}
-
-.cart-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    background-color: #2b2b2b;
-    border: 1px solid var(--border-gray);
-    border-radius: 10px;
-}
-
-.cart-table th, .cart-table td {
-    padding: 15px;
-    text-align: left;
-    border-bottom: 1px solid var(--border-gray);
-}
-
-.cart-table th {
-    background-color: #3a3a3a;
-    color: var(--text-light);
-    font-weight: bold;
-}
-
-.cart-table td {
-    color: #ccc;
-}
-
-.cart-item-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.cart-item-info img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-
-.cart-item-info h3 {
-    margin: 0 0 5px 0;
-    font-size: 16px;
-    color: var(--text-light);
-}
-
-.cart-item-info .artist {
-    font-size: 14px;
-    color: #bbb;
-}
-
-.quantity-control {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.quantity-control input[type="number"] {
-    width: 60px;
-    padding: 8px;
-    border: 1px solid #444;
-    border-radius: 5px;
-    background-color: #3a3a3a;
-    color: var(--text-light);
-    font-size: 15px;
-    text-align: center;
-   /* -moz-appearance: textfield; /* Remove as setas no Firefox */
-}
-
-/* Remove as setas de number input no Chrome, Safari, Edge */
-.quantity-control input[type="number"]::-webkit-outer-spin-button,
-.quantity-control input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.quantity-control .btn-icon {
-    background-color: #444;
-    border: none;
-    color: var(--text-light);
-    padding: 5px 8px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.quantity-control .btn-icon:hover {
-    background-color: var(--primary-purple);
-    color: var(--text-light);
-}
-
-.subtotal {
-    font-weight: bold;
-    color: var(--primary-purple);
-    white-space: nowrap;
-}
-
-.btn-remove {
-    background-color: #d32f2f; /* Vermelho */
-    color: var(--text-light);
-}
-
-.btn-remove:hover {
-    background-color: #b71c1c; /* Vermelho mais escuro */
-}
-
-.total-row {
-    font-weight: bold;
-    font-size: 18px;
-}
-
-.total-label {
-    text-align: right;
-}
-
-.total-price {
-    color: var(--primary-purple);
-    white-space: nowrap;
-}
-
-.cart-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 30px;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.cart-actions .btn {
-    padding: 12px 25px;
-    font-size: 16px;
-}
-
-.empty-cart-message {
-    text-align: center;
-    font-size: 18px;
-    color: #aaa;
-    margin-bottom: 20px;
-}
-
-/* Responsividade para a Página do Carrinho */
-/* Variáveis de Cores (seus já existentes) */
-:root {
-    --bg-dark: #1a1a1a;
-    --text-light: #ffffff;
-    --primary-purple: #8A2BE2;
-    --secondary-purple: #A569BD;
-    --border-gray: #333;
-    --alert-error: #dc3545;
-    --alert-success: #28a745;
-    --input-bg: #2b2b2b;
-    --input-border-focus: #A569BD;
-}
-
-/* ... Seu CSS existente ... */
-
-/* Estilos para o botão de ícone base */
-.btn-icon {
-    background-color: transparent;
-    border: none;
-    color: var(--text-light); /* Cor padrão do ícone */
-    cursor: pointer;
-    padding: 5px;
-    font-size: 1.2em; /* Ajuste o tamanho do ícone se necessário */
-    transition: none; /* Garante que não há transição */
-}
-
-/* Remove hover para o botão de remover */
-.btn-remove:hover,
-.btn-remove:focus,
-.btn-remove:active {
-    background-color: transparent; /* Sem fundo no hover/focus/active */
-    color: var(--text-light); /* Mantém a cor do ícone */
-    outline: none; /* Remove outline de foco */
-    box-shadow: none; /* Remove sombra no hover/focus/active */
-    transform: none; /* Remove transformações (escalar, etc.) */
-}
-
-/* Certifique-se de que o ícone em si também não tenha hover, se for o caso */
-.btn-remove i:hover {
-    color: var(--text-light);
-}
-
-/* Se você tinha estilos específicos para .quantity-control, pode removê-los ou adaptá-los se ainda precisar de algum div específico */
-/* Exemplo: .quantity-control { display: none; } */
-/* Ou apenas remova as regras CSS que se aplicavam a ele. */
-
-/* Estilo para a quantidade exibida (novo span) */
-.item-quantity {
-    display: inline-block;
-    padding: 5px 10px;
-    border: 1px solid var(--border-gray);
-    background-color: var(--input-bg);
-    color: var(--text-light);
-    border-radius: 4px;
-    text-align: center;
-    min-width: 40px; /* Para garantir que o número apareça bem */
-}
-
-/* Media Queries (seus já existentes, mas verifique se há referências a .quantity-control) */
-@media (max-width: 768px) {
-    .cart-table th, .cart-table td {
-        padding: 10px;
-        font-size: 14px;
-    }
-
-    .cart-item-info img {
-        width: 60px;
-        height: 60px;
-    }
-
-    .cart-item-info h3 {
-        font-size: 15px;
-    }
-
-    /* Removido: .quantity-control input[type="number"] */
-
-    .cart-actions .btn {
-        padding: 10px 20px;
-        font-size: 15px;
-    }
-
-    .item-quantity { /* Estilo para o novo span de quantidade */
-        padding: 6px;
-        font-size: 14px;
-        min-width: 30px;
-    }
-}
-
-@media (max-width: 480px) {
-    .cart-table th, .cart-table td {
-        padding: 8px;
-        font-size: 13px;
-    }
-
-    .cart-item-info {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .cart-item-info img {
-        width: 50px;
-        height: 50px;
-    }
-
-    .cart-item-info h3 {
-        font-size: 14px;
-        margin-bottom: 3px;
-    }
-
-    /* Removido: .quantity-control input[type="number"] */
-
-    .cart-actions {
-        flex-direction: column;
-    }
-
-    .cart-actions .btn {
-        width: 100%;
-        text-align: center;
-    }
-
-    .item-quantity { /* Estilo para o novo span de quantidade */
-        padding: 5px;
-        font-size: 13px;
-        min-width: 25px;
-    }
-}
-
-/* Reset Básico e Estilos Gerais */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: var(--bg-dark);
-    color: var(--text-light);
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-a {
-    text-decoration: none;
-    color: inherit;
-}
-
-/* Header */
-.header {
-    background-color: #0d0d0d;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--border-gray);
-}
-
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.logo h1 {
-    margin: 0;
-    font-size: 28px;
-    color: var(--text-light);
-    white-space: nowrap;
-}
-
-.main-nav {
-    flex-grow: 1;
-    text-align: center;
-}
-
-.main-nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.main-nav li {
-    margin: 0 15px;
-}
-
-.main-nav a {
-    color: var(--text-light);
-    text-decoration: none;
-    font-size: 16px;
-    transition: color 0.3s ease;
-    padding: 5px 0;
-    display: block;
-}
-
-.main-nav a:hover {
-    color: var(--primary-purple);
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-.search-bar {
-    display: flex;
-    background-color: var(--input-bg);
-    border-radius: 5px;
-    overflow: hidden;
-    flex-grow: 1;
-    max-width: 300px;
-}
-
-.search-bar input {
-    border: none;
-    background: transparent;
-    padding: 8px 12px;
-    color: var(--text-light);
-    outline: none;
-    flex-grow: 1;
-    min-width: 100px;
-}
-
-.search-bar button {
-    background-color: var(--primary-purple);
-    border: none;
-    color: var(--text-light);
-    padding: 8px 12px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    flex-shrink: 0;
-}
-
-.search-bar button:hover {
-    background-color: #6a0dad;
-}
-
-.btn {
-    padding: 10px 20px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    white-space: nowrap;
-}
-
-.btn-primary {
-    background-color: var(--primary-purple);
-    color: var(--text-light);
-    border: none;
-}
-
-.btn-primary:hover {
-    background-color: #6a0dad;
-}
-
-.btn-secondary {
-    background-color: transparent;
-    color: var(--primary-purple);
-    border: 1px solid var(--primary-purple);
-}
-
-.btn-secondary:hover {
-    background-color: var(--primary-purple);
-    color: var(--text-light);
-}
-
-.user-icon, .cart-icon {
-    color: var(--text-light);
-    font-size: 24px;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.user-icon:hover, .cart-icon:hover {
-    color: var(--primary-purple);
-}
-
-/* Main Content - Seções */
-.main-content {
-    min-height: calc(100vh - 120px); /* Ajusta altura para header e footer */
-    padding-top: 20px;
-    padding-bottom: 20px;
-}
-
-.section-padding {
-    padding: 40px 0;
-}
-
-h2 {
-    font-size: 32px;
-    margin-bottom: 30px;
-    text-align: center;
-    color: var(--text-light);
-    font-weight: bold;
-}
-
-/* --- Estilos para o Formulário de Login/Cadastro --- */
-.form-page .login-section,
-.form-page .register-section { /* Aplica a ambas as seções de formulário */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 120px - 40px); /* Ajusta para cabeçalho, rodapé e padding */
-    padding: 40px 0;
-}
-
-.form-container {
-    background-color: #0d0d0d; /* Fundo mais escuro para o container do formulário */
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-    width: 100%;
-    max-width: 450px;
-    text-align: center;
-    border: 1px solid var(--border-gray);
-}
-
-.form-container h2 {
-    color: var(--primary-purple);
-    margin-bottom: 25px;
-    font-size: 28px;
-    text-align: center;
-}
-
-.form-group {
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: var(--text-light);
-}
-
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="password"] {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-gray);
-    border-radius: 5px;
-    background-color: var(--input-bg);
-    color: var(--text-light);
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.3s ease;
-}
-
-.form-group input[type="text"]:focus,
-.form-group input[type="email"]:focus,
-.form-group input[type="password"]:focus {
-    border-color: var(--input-border-focus); /* Roxo secundário ao focar */
-    box-shadow: 0 0 0 2px rgba(165, 105, 189, 0.3); /* Sombra suave ao focar */
-}
-
-.form-footer-text {
-    margin-top: 25px;
-    color: #ccc;
-    font-size: 0.95rem;
-}
-
-.form-footer-text a {
-    font-weight: bold;
-    color: var(--primary-purple);
-}
-
-.form-footer-text a:hover {
-    text-decoration: underline;
-}
-
-/* --- Mensagens de Alerta (Sucesso/Erro) --- */
-.alert {
-    padding: 15px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    font-weight: bold;
-    text-align: center;
-}
-
-.alert.error-message {
-    background-color: rgba(220, 53, 69, 0.15);
-    color: var(--alert-error);
-    border: 1px solid var(--alert-error);
-}
-
-.alert.success-message {
-    background-color: rgba(40, 167, 69, 0.15);
-    color: var(--alert-success);
-    border: 1px solid var(--alert-success);
-}
-
-/* --- Media Queries para Responsividade --- */
-@media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-    }
-
-    .main-nav ul {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .main-nav ul li {
-        margin: 0;
-    }
-
-    .header-actions {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .search-bar {
-        width: 100%;
-        max-width: none;
-    }
-
-    .search-bar input {
-        width: 100%;
-    }
-
-    .btn {
-        width: 100%;
-    }
-
-    .form-container {
-        padding: 30px;
-        margin: 0 15px;
-    }
-}
-
-@media (max-width: 480px) {
-    .header .logo h1 {
-        font-size: 24px;
-    }
-
-    .main-nav a {
-        font-size: 14px;
-    }
-
-    h2 {
-        font-size: 26px;
-    }
-
-    .form-container {
-        padding: 20px;
-    }
-}
-
 /* --- Estilos para a Página de Perfil --- */
 .profile-page .profile-section {
-    background-color: #0d0d0d; /* Fundo escuro como o header/form */
+    background-color: var(--form-container-bg); /* Fundo escuro como o header/form */
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     border: 1px solid var(--border-gray);
@@ -1563,7 +1223,7 @@ h2 {
 }
 
 .profile-details {
-    background-color: #111; /* Fundo ligeiramente mais claro para os detalhes */
+    background-color: var(--bg-dark); /* Fundo ligeiramente mais claro para os detalhes */
     padding: 25px;
     border-radius: 8px;
     border: 1px solid var(--border-gray);
@@ -1638,250 +1298,4 @@ h2 {
     .profile-details {
         padding: 20px;
     }
-} 
-/* --- Estilos para a Página de Transações (my-transactions.ejs) --- */
-
-/* Seção de Tabs */
-.tabs {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 30px;
-    gap: 10px; /* Spacing between tab buttons */
-    flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
-}
-
-.tab-button {
-    background-color: var(--card-bg); /* Background of the beat cards */
-    color: var(--text-light);
-    border: 1px solid var(--border-gray);
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-    white-space: nowrap; /* Prevents text from breaking */
-}
-
-.tab-button:hover {
-    background-color: var(--secondary-purple);
-    border-color: var(--primary-purple);
-}
-
-.tab-button.active {
-    background-color: var(--primary-purple);
-    border-color: var(--primary-purple);
-    color: var(--text-light);
-}
-
-.tab-button.active:hover {
-    background-color: var(--primary-purple); /* Keeps active color on hover */
-}
-
-/* Content of Tabs */
-.tab-content {
-    display: none; /* Hides all content by default */
-    padding: 20px 0;
-    margin-top: 20px; /* Space between tabs and content */
-}
-
-.tab-content.active {
-    display: block; /* Shows the active content */
-}
-
-.tab-content h3 {
-    font-size: 1.8em;
-    margin-bottom: 25px;
-    color: var(--primary-purple);
-    text-align: center; /* Centers the subsection title */
-}
-
-/* Transactions Table (Purchases and Sales) */
-.transactions-table-container {
-    overflow-x: auto;
-    margin-bottom: 20px;
-    border: 1px solid var(--border-gray);
-    border-radius: 8px;
-    background-color: var(--card-bg); /* Consistent with card backgrounds */
-}
-
-.transactions-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 700px; /* Ensures minimum width for tables */
-}
-
-.transactions-table th, .transactions-table td {
-    text-align: left;
-    padding: 15px;
-    border-bottom: 1px solid var(--border-gray);
-}
-
-.transactions-table th {
-    background-color: var(--secondary-purple);
-    color: var(--text-light);
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 0.9em;
-}
-
-.transactions-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.transactions-table tbody tr:hover {
-    background-color: #333333; /* Hover effect for table rows */
-}
-
-.transactions-table .item-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.transactions-table .item-info img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-
-.transactions-table .item-info span {
-    font-weight: bold;
-    color: var(--text-light);
-}
-
-/* Styles for action icons in tables (download, edit, delete) */
-.transactions-table .btn-icon {
-    background-color: transparent;
-    border: none;
-    color: var(--secondary-purple); /* Default color for action icons */
-    padding: 5px;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.transactions-table .btn-icon:hover {
-    color: var(--primary-purple);
-}
-
-/* Specific buttons for editing/deleting beats for sale */
-.transactions-table .edit-beat-btn {
-    color: #FFC107; /* Yellow for edit */
-}
-.transactions-table .edit-beat-btn:hover {
-    color: #E0A800;
-}
-
-.transactions-table .delete-beat-btn {
-    color: var(--alert-error); /* Red for delete */
-}
-.transactions-table .delete-beat-btn:hover {
-    color: #c82333;
-}
-
-.empty-message {
-    text-align: center;
-    font-size: 1.1em;
-    color: #bbb;
-    margin: 30px 0;
-}
-
-.empty-message + .btn { /* To align the "Começar a Vender" button */
-    display: block;
-    width: fit-content;
-    margin: 20px auto;
-}
-
-/* Media Queries for table responsiveness */
-@media (max-width: 768px) {
-    .tabs {
-        flex-direction: column;
-        align-items: center;
-    }
-    .tab-button {
-        width: 100%;
-        max-width: 300px;
-    }
-    .transactions-table th, .transactions-table td {
-        padding: 10px;
-        font-size: 0.9em;
-    }
-    .transactions-table .item-info img {
-        width: 40px;
-        height: 40px;
-    }
-}
-
-/* --- Estilos para o Formulário Geral (create-edit-beat.ejs) --- */
-.general-form {
-    background-color: var(--card-bg); /* Fundo dos cards */
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    max-width: 600px;
-    margin: 30px auto; /* Centraliza o formulário */
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: var(--text-light);
-}
-
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group input[type="url"],
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-gray);
-    border-radius: 5px;
-    background-color: var(--input-bg);
-    color: var(--text-light);
-    font-size: 1em;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.form-group input[type="text"]:focus,
-.form-group input[type="number"]:focus,
-.form-group input[type="url"]:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: var(--input-border-focus);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(165, 105, 189, 0.3); /* Sombra suave para foco */
-}
-
-.form-group small {
-    display: block;
-    margin-top: 5px;
-    font-size: 0.85em;
-    color: #aaa;
-}
-
-.general-form .btn {
-    margin-right: 10px; /* Espaçamento entre os botões */
-}
-
-/* Container para o botão "Adicionar Novo Beat" na tabela */
-.add-new-beat-action {
-    text-align: right; /* Alinha o botão à direita */
-    margin-bottom: 20px;
-}
-
-.add-new-beat-action .add-beat-btn {
-    padding: 10px 20px; /* Aumenta o padding do botão */
-    font-size: 1.1em;
-}
-
-/* Ícone no botão */
-.add-new-beat-action .add-beat-btn i {
-    margin-right: 8px;
 }

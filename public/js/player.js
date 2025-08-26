@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const beatTitle = button.closest('.beat-card').querySelector('h3').textContent; // Pega o título do beat
 
             // Se o mesmo beat estiver tocando e o botão for clicado, pausa/retoma
+            // Verifica se a URL atual do player é a mesma do botão clicado
             if (audioPlayer.src === window.location.origin + audioUrl) {
                 if (audioPlayer.paused) {
                     audioPlayer.play();
@@ -32,7 +33,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 audioPlayer.src = audioUrl;
-                audioPlayer.play();
+                audioPlayer.play()
+                    .catch(error => {
+                        // Captura erros de autoplay (navegadores podem bloquear)
+                        console.error('Erro ao tentar tocar o áudio (autoplay bloqueado?):', error);
+                        alert('O navegador bloqueou a reprodução automática. Por favor, interaja com a página ou clique novamente.');
+                        // Reseta o ícone se o play falhar
+                        button.querySelector('i').classList.remove('fa-pause');
+                        button.querySelector('i').classList.add('fa-play');
+                    });
 
                 // Atualiza o ícone do botão atual para pause
                 button.querySelector('i').classList.remove('fa-play');
@@ -68,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Se um novo play começa (e não é uma retomada), resetar outros botões
         playButtons.forEach(button => {
             const buttonAudioUrl = button.dataset.audioUrl;
+            // Verifica se a URL do player corresponde à URL de áudio deste botão
             if (audioPlayer.src.includes(buttonAudioUrl) && currentPlayingButton !== button) {
                 if (currentPlayingButton) {
                     currentPlayingButton.querySelector('i').classList.remove('fa-pause');
