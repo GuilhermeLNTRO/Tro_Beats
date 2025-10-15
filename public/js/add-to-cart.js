@@ -1,53 +1,62 @@
 document.addEventListener('DOMContentLoaded', () => {
     const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-    const cartIcon = document.querySelector('.cart-icon .fas.fa-shopping-cart');
-
-    function updateCartCount(count) {
-        let cartCountSpan = cartIcon.querySelector('.cart-count');
-        if (!cartCountSpan) {
-            cartCountSpan = document.createElement('span');
-            cartCountSpan.classList.add('cart-count');
-            cartIcon.appendChild(cartCountSpan);
-        }
-        cartCountSpan.textContent = count > 0 ? count : '';
-        cartCountSpan.style.display = count > 0 ? 'inline-block' : 'none';
-    }
 
     addToCartButtons.forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const btn = event.target;
-            const beatId = btn.dataset.id;
-            const beatTitle = btn.dataset.title;
-            const beatArtist = btn.dataset.artist;
-            const beatPrice = btn.dataset.price;
-            const beatCover = btn.dataset.cover;
+        button.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            // 1. Coleta dos dados a partir dos atributos data-* do botão
+            
+            // O HTML no index.ejs agora garante que o data-price use o ponto (.),
+            // mas mantemos a verificação robusta para caso haja erro na formatação do backend.
+            const rawPrice = button.dataset.price;
+            const priceValue = parseFloat(rawPrice); // Converte preço para número imediatamente
+
+            const beatData = {
+                id: button.dataset.id,
+                title: button.dataset.title,
+                artist: button.dataset.artist,
+                price: priceValue, // Agora é um número
+                cover: button.dataset.cover || '/img/placeholder-cover.jpg'
+            };
+
+            // EXTREMAMENTE CRÍTICO: DEBUG
+            console.log('--- DADOS RECEBIDOS DO BEAT ---');
+            console.log('ID:', beatData.id);
+            console.log('Título:', beatData.title);
+            console.log('Preço (FLOAT):', beatData.price);
+            console.log('------------------------------');
+
+            // 2. Verifica se algum dado crucial está faltando ANTES de enviar
+            // O beat só é válido se tiver ID, Título e Preço numérico maior que 0.
+            if (!beatData.id || !beatData.title || isNaN(beatData.price) || beatData.price <= 0) {
+                console.error('ERRO FATAL: Dados ausentes ou inválidos no beat. BeatData:', beatData);
+                alert('Não foi possível adicionar o beat. Preço inválido ou dados faltando. Verifique se o preço é > R$ 0.00.');
+                return;
+            }
 
             try {
+                // 3. Envio dos dados para a rota do servidor
                 const response = await fetch('/carrinho/adicionar', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        id: beatId,
-                        title: beatTitle,
-                        artist: beatArtist,
-                        price: beatPrice,
-                        cover: beatCover
-                    })
+                    body: JSON.stringify(beatData)
                 });
 
+                const result = await response.json();
+
                 if (response.ok) {
-                    const data = await response.json();
-                    alert(data.message);
-                    updateCartCount(data.cartCount);
+                    alert(`"${beatData.title}" adicionado ao carrinho! Total de itens: ${result.cartCount}`); 
+                    console.log('Carrinho atualizado:', result);
                 } else {
-                    const errorData = await response.json();
-                    alert(`Erro ao adicionar ao carrinho: ${errorData.message || 'Ocorreu um erro desconhecido.'}`);
+                    alert(`Erro ao adicionar: ${result.message}`);
                 }
+
             } catch (error) {
-                console.error('Erro na requisição Fetch (provavelmente de conexão):', error);
-                alert('Erro de conexão. Não foi possível adicionar o item ao carrinho. Verifique se o servidor está rodando.');
+                console.error('Erro de rede ao adicionar ao carrinho:', error);
+                alert('Erro de conexão com o servidor. Tente novamente.');
             }
         });
     });

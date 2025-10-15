@@ -1,131 +1,464 @@
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
+const fs = require('fs');
+const { spawn } = require('child_process');
+const sqlite3 = require('sqlite3');
+const { open } = require('sqlite');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const multer = require('multer'); // Importa o Multer
+
 const app = express();
-const PORT = process.env.PORT || 3000; // Define a porta do servidor
+const PORT = process.env.PORT || 3000;
 
-// --- Configurações do Express ---
-// Configura o EJS como seu view engine
-app.set('view engine', 'ejs');
-// Define o diretório das suas views (.ejs)
-app.set('views', path.join(__dirname, 'views'));
-// Serve arquivos estáticos (CSS, JS, imagens) da pasta 'public'
-app.use(express.static(path.join(__dirname, 'public')));
-// Middleware para parsear dados de formulários HTML (urlencoded)
-app.use(express.urlencoded({ extended: true }));
-// Middleware para parsear corpos de requisição JSON (necessário para APIs)
-app.use(express.json());
+let db; // Variável global para o banco de dados
 
-// --- Configuração da Sessão ---
-app.use(session({
-    secret: 'sua_super_chave_secreta_e_unica_aqui_para_a_sessao', // MUDE ISSO EM PRODUÇÃO! Use uma string longa e aleatória.
-    resave: false, // Evita salvar a sessão se não houver modificações
-    saveUninitialized: true, // Salva sessões novas e não modificadas
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 'false' para HTTP (dev), 'true' para HTTPS (prod). maxAge em ms (1 dia)
-}));
+// Chaves de Configuração do Google OAuth 2.0 (SUBSTITUA ESTES VALORES)
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; 
+const GOOGLE_CLIENT_SECRET = 'YOUR_GOOGLE_CLIENT_SECRET';
 
-// --- Middleware para popular o carrinho com dados de exemplo na sessão ---
-// Isso garante que você sempre tenha itens no carrinho para testar a remoção e adição.
-app.use((req, res, next) => {
-    if (!req.session.cart) {
-        req.session.cart = [
-            { id: 'item101', title: 'Epic Trap Beat', artist: 'Producer X', price: 29.99, cover: '/img/cart1.jpg', quantity: 1 },
-            { id: 'item102', title: 'Chill Lo-Fi Beat', artist: 'BeatMaster', price: 19.99, cover: '/img/cart2.jpg', quantity: 1 },
-            { id: 'item103', title: 'Hard Drill Beat', artist: 'DrillKing', price: 34.99, cover: '/img/cart3.jpg', quantity: 1 }
-        ];
+// URL BASE do Checkout Kiwify (URL do seu produto ou checkout dinâmico)
+const KIWIFY_CHECKOUT_BASE_URL = 'https://kiwify.app/SEU_CHECKOUT_ID'; 
+
+// --- Configuração do Multer para Upload de Arquivos (Capas e Áudio) ---
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        // Define o destino: 'public/img/beat-covers' para imagens ou 'private_audio' para áudio
+        let destinationPath;
+        if (file.fieldname === 'cover_image') {
+            destinationPath = path.join(__dirname, 'public', 'img', 'beat-covers');
+        } else if (file.fieldname === 'audio_file') {
+            destinationPath = path.join(__dirname, 'private_audio');
+        } else {
+            return cb(new Error('Campo de arquivo desconhecido.'), false);
+        }
+
+        // Cria o diretório se ele não existir
+        fs.mkdirSync(destinationPath, { recursive: true });
+        cb(null, destinationPath);
+    },
+    filename: function (req, file, cb) {
+        // Gera um nome de arquivo único para a capa ou áudio
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9); 
+        cb(null, uniqueSuffix + path.extname(file.originalname));
     }
-    next();
 });
 
-// --- Dados de Exemplo para a Home (Trending Beats e New Releases) ---
-// ATENÇÃO: audioUrl agora aponta para a rota protegida /play-beat/:id
-const trendingBeatsData = [
-    { id: 'beat1', title: 'Vision | 21savage x N...', artist: 'nohookz', price: 25.00, cover: '/img/beat1_cover.jpg', featured: false, audioUrl: '/play-beat/beat1' },
-    { id: 'beat2', title: 'Ready | Humho x N...', artist: 'BIYO', price: 87.95, cover: '/img/beat2_cover.jpg', featured: false, audioUrl: '/play-beat/beat2' },
-    { id: 'beat3', title: 'Time Back (Prod. b...', artist: 'kotsuru', price: 20.95, cover: '/img/beat3_cover.jpg', featured: false, audioUrl: '/play-beat/beat3' },
-    { id: 'beat4', title: '100 BEATS FOR R$100', artist: 'waynocat', price: 100.00, cover: '/img/beat4_cover.jpg', featured: false, audioUrl: '/play-beat/beat4' },
-    { id: 'beat5', title: 'MURDER - 1+9 FREE', artist: 'Gotenkeyy', price: 40.99, cover: '/img/beat5_cover.jpg', featured: false, audioUrl: '/play-beat/beat5' },
-    { id: 'beat6', title: 'Rise (Pop)', artist: 'rabbel', price: 59.95, cover: '/img/beat6_cover.jpg', featured: false, audioUrl: '/play-beat/beat6' }
-];
-
-const newReleasesData = [
-    { id: 'beat7', title: 'New Vibe (Chill Hop)', artist: 'producerX', price: 18.00, cover: '/img/new1-cover.jpg', audioUrl: '/play-beat/new1' },
-    { id: 'beat8', title: 'Dark Trap Anthem', artist: 'beatlord', price: 35.00, cover: '/img/new2-cover.jpg', audioUrl: '/play-beat/new2' },
-    { id: 'beat9', title: 'Summer Groove', artist: 'sunnymusic', price: 22.50, cover: '/img/new3-cover.jpg', audioUrl: '/play-beat/new3' }
-];
-
-const userData = {
-    username: 'Guilherme',
-    email: 'guilhermecezartec@gmail.com',
-    profilePic: '/img/default-profile.png',
-    isBeatmaker: true, // Define se o usuário é um beatmaker para testar as funcionalidades
-    producerName: 'Lil.Nego',
-    bio: 'Sou um produtor musical apaixonado por criar batidas de Trap e Drill. Sempre buscando novos sons e inspirações.'
-};
-
-// --- Dados de Exemplo para Compras e Vendas (Beatmaker) ---
-const userPurchasesData = [
-    {
-        id: 'purchase001',
-        date: '2025-06-15',
-        item: { id: 'beat1', title: 'Vision | 21savage x N...', artist: 'nohookz', price: 25.00, cover: '/img/beat1_cover.jpg' },
-        amount: 25.00,
-        license: '.wav'
-    },
-    {
-        id: 'purchase002',
-        date: '2025-05-20',
-        item: { id: 'beat7', title: 'New Vibe (Chill Hop)', artist: 'producerX', price: 18.00, cover: '/img/new1-cover.jpg' },
-        amount: 18.00,
-        license: 'Basic'
+// Define o middleware de upload para aceitar 1 imagem e 1 áudio
+const upload = multer({ 
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+        if (file.fieldname === 'cover_image' && !file.mimetype.startsWith('image/')) {
+            req.fileValidationError = 'A Capa deve ser um arquivo de imagem!';
+            return cb(null, false);
+        }
+        if (file.fieldname === 'audio_file' && !file.mimetype.startsWith('audio/')) {
+            req.fileValidationError = 'O Beat deve ser um arquivo de áudio (MP3)!';
+            return cb(null, false);
+        }
+        cb(null, true);
     }
-];
+}).fields([
+    { name: 'cover_image', maxCount: 1 },
+    { name: 'audio_file', maxCount: 1 }
+]);
 
-// O array beatmakerBeatsForSale é declarado com 'let' para permitir modificações (CRUD)
-let beatmakerBeatsForSale = [
-    { id: 'mybeat01', title: 'Sunset Trap', genre: 'Trap', price: 45.00, cover: '/img/mybeat_sunset.jpg', status: 'À Venda', salesCount: 1, audioUrl: '/play-beat/mybeat01' },
-    { id: 'mybeat02', title: 'Drill Aggressive', genre: 'Drill', price: 60.00, cover: '/img/mybeat_drill.jpg', status: 'Rascunho', salesCount: 0, audioUrl: '/play-beat/mybeat02' },
-    { id: 'mybeat03', title: 'Lo-Fi Chill Study', genre: 'Lo-Fi', price: 30.00, cover: '/img/mybeat_lofi.jpg', status: 'À Venda', salesCount: 1, audioUrl: '/play-beat/mybeat03' },
-    { id: 'mybeat04', title: 'Boom Bap Groove', genre: 'Boom Bap', price: 50.00, cover: '/img/mybeat_boombap.jpg', status: 'Rascunho', salesCount: 0, audioUrl: '/play-beat/mybeat04' }
-];
 
-const beatmakerSalesData = [
-    {
-        id: 'sale001',
-        date: '2025-06-01',
-        beat: { id: 'mybeat01', title: 'Sunset Trap', genre: 'Trap', price: 45.00, cover: '/img/mybeat_sunset.jpg' },
-        buyer: 'comprador123',
-        amount: 45.00,
-        license: 'Exclusive'
-    },
-    {
-        id: 'sale002',
-        date: '2025-06-10',
-        beat: { id: 'mybeat02', title: 'Drill Aggressive', genre: 'Drill', price: 60.00, cover: '/img/mybeat_drill.jpg' },
-        buyer: 'clienteXYZ',
-        amount: 60.00,
-        license: 'Exclusive'
+// --- Configuração do Banco de Dados SQLite ---
+async function initializeDatabase() {
+    db = await open({
+        filename: path.join(__dirname, 'trobeats_database.sqlite'),
+        driver: sqlite3.Database
+    });
+
+    // Função auxiliar para executar consultas SQL e garantir a estrutura
+    const run = (sql, params = []) => db.run(sql, params);
+    
+    console.log('Conectado ao SQLite com sucesso!');
+
+    // 1. Criação das Tabelas (Estrutura completa)
+    await run(`
+        CREATE TABLE IF NOT EXISTS Users (
+            UserID INTEGER PRIMARY KEY AUTOINCREMENT,
+            Username TEXT NOT NULL UNIQUE,
+            Email TEXT NOT NULL UNIQUE,
+            PasswordHash TEXT NOT NULL,
+            IsBeatmaker INTEGER NOT NULL DEFAULT 0,
+            ProducerName TEXT,
+            Bio TEXT,
+            ProfilePicURL TEXT
+        );
+    `);
+    
+    await run(`
+        CREATE TABLE IF NOT EXISTS Beats (
+            BeatID TEXT PRIMARY KEY,
+            Title TEXT NOT NULL,
+            ArtistName TEXT NOT NULL,
+            Genre TEXT,
+            Price REAL NOT NULL,
+            CoverImageURL TEXT,
+            AudioFileURL TEXT NOT NULL,
+            Status TEXT NOT NULL DEFAULT 'À Venda',
+            SalesCount INTEGER NOT NULL DEFAULT 0,
+            IsFeatured INTEGER NOT NULL DEFAULT 0,
+            UploadDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UploadedByUserID INTEGER,
+            FOREIGN KEY (UploadedByUserID) REFERENCES Users(UserID)
+        );
+    `);
+    
+    await run(`
+        CREATE TABLE IF NOT EXISTS Purchases (
+            PurchaseID INTEGER PRIMARY KEY AUTOINCREMENT,
+            UserID INTEGER,
+            BeatID TEXT,
+            PurchaseDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+            AmountPaid REAL NOT NULL,
+            LicenseType TEXT,
+            FOREIGN KEY (UserID) REFERENCES Users(UserID),
+            FOREIGN KEY (BeatID) REFERENCES Beats(BeatID)
+        );
+    `);
+    
+    await run(`
+        CREATE TABLE IF NOT EXISTS Sales (
+            SaleID INTEGER PRIMARY KEY AUTOINCREMENT,
+            BeatID TEXT,
+            SellerUserID INTEGER,
+            BuyerUsername TEXT,
+            SaleDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+            AmountReceived REAL NOT NULL,
+            LicenseType TEXT,
+            FOREIGN KEY (BeatID) REFERENCES Beats(BeatID),
+            FOREIGN KEY (SellerUserID) REFERENCES Users(UserID)
+        );
+    `);
+
+    // 2. Inserção de Dados de Exemplo (para carregar a página inicial)
+    const userExists = await db.get("SELECT UserID FROM Users WHERE Username = 'Lil.Nego'");
+    if (!userExists) {
+        await run(`
+            INSERT INTO Users (Username, Email, PasswordHash, IsBeatmaker, ProducerName, Bio, ProfilePicURL)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, ['Lil.Nego', 'lilnego@trobeats.com', 'senha_secreta_123', 1, 'Lil.Nego', 'Um produtor de trap e drill.', '/img/default-profile.png']);
     }
-];
+
+    const userID = await db.get("SELECT UserID FROM Users WHERE Username = 'Lil.Nego'");
+
+    const beat1Exists = await db.get("SELECT BeatID FROM Beats WHERE BeatID = 'beat1'");
+    if (!beat1Exists) {
+        await run(`
+            INSERT INTO Beats (BeatID, Title, ArtistName, Price, CoverImageURL, AudioFileURL, Status, IsFeatured, UploadedByUserID, Genre, SalesCount)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, ['beat1', 'Midnight Drive', 'Lil.Nego', 50.00, '/img/beat-covers/cover1.jpg', 'beat1.mp3', 'À Venda', 1, userID.UserID, 'Trap', 0]);
+    }
+    
+    const beat2Exists = await db.get("SELECT BeatID FROM Beats WHERE BeatID = 'beat2'");
+    if (!beat2Exists) {
+        await run(`
+            INSERT INTO Beats (BeatID, Title, ArtistName, Price, CoverImageURL, AudioFileURL, Status, IsBeatmaker, UploadedByUserID, Genre, SalesCount)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, ['beat2', 'Drip Swag', 'Lil.Nego', 65.00, '/img/beat-covers/cover2.jpg', 'beat2.mp3', 'À Venda', 0, userID.UserID, 'Drill', 0]);
+    }
+}
+
+// Inicializa o banco de dados antes de iniciar o servidor
+initializeDatabase().catch(err => {
+    console.error('Falha ao inicializar o banco de dados:', err);
+    // Remove o arquivo de banco de dados para evitar o erro se a estrutura estiver corrompida
+    if (err.code === 'SQLITE_ERROR') {
+        if (fs.existsSync(path.join(__dirname, 'trobeats_database.sqlite'))) {
+            fs.unlinkSync(path.join(__dirname, 'trobeats_database.sqlite'));
+            console.log('Banco de dados corrompido removido. Por favor, reinicie o servidor.');
+        } else {
+            console.log('Banco de dados não encontrado ou falhou ao criar. Verifique permissões.');
+        }
+    }
+    process.exit(1);
+});
+
+// --- Configurações do Express e Sessão ---
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// Configuração da Sessão (Obrigatória para o Passport)
+app.use(session({
+    secret: 'sua_super_chave_secreta_e_unica_aqui_para_a_sessao',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
+}));
+
+// Inicialização do Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// --- Configuração do Passport (MANTIDA) ---
+
+// 1. Serialização: O que salvar na sessão (apenas o UserID)
+passport.serializeUser((user, done) => {
+    done(null, user.UserID);
+});
+
+// 2. Deserialização: Como carregar o usuário a partir do ID na sessão
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await db.get("SELECT * FROM Users WHERE UserID = ?", [id]);
+        if (user) {
+            const sessionUser = {
+                UserID: user.UserID,
+                username: user.Username,
+                email: user.Email,
+                isBeatmaker: user.IsBeatmaker,
+                producerName: user.ProducerName,
+                bio: user.Bio,
+                profilePic: user.ProfilePicURL
+            };
+            done(null, sessionUser);
+        } else {
+            done(null, false);
+        }
+    } catch (err) {
+        done(err, null);
+    }
+});
+
+// 3. Estratégia Google
+passport.use(new GoogleStrategy({
+    clientID: GOOGLE_CLIENT_ID,
+    clientSecret: GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://localhost:3000/auth/google/callback" // URL para onde o Google redireciona
+},
+async (accessToken, refreshToken, profile, done) => {
+    const email = profile.emails[0].value;
+    try {
+        let user = await db.get("SELECT * FROM Users WHERE Email = ?", [email]);
+
+        if (user) {
+            // Usuário existente (Login normal)
+            return done(null, user);
+        } else {
+            // Novo Usuário: Cria o registro básico e marca que ele precisa definir o papel
+            const result = await db.run(`
+                INSERT INTO Users (Username, Email, PasswordHash, IsBeatmaker, ProducerName)
+                VALUES (?, ?, ?, ?, ?)
+            `, [profile.displayName, email, 'GOOGLE_AUTH_TOKEN', 0, null]);
+            
+            const newUser = {
+                UserID: result.lastID,
+                username: profile.displayName,
+                email: email,
+                isBeatmaker: 0,
+                needsRoleSelection: true // Flag para redirecionar para seleção de função
+            };
+            return done(null, newUser);
+        }
+    } catch (err) {
+        return done(err, null);
+    }
+}));
 
 
-// --- ROTAS DA APLICAÇÃO ---
+// --- ROTAS DE AUTENTICAÇÃO (MANTIDA) ---
 
-// Rota da Página Inicial
-app.get('/', (req, res) => {
-    res.render('index', {
-        trendingBeats: trendingBeatsData,
-        newReleases: newReleasesData
+// Inicia o fluxo de login do Google
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// Rota de Callback após o Google autenticar
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    if (req.user && req.user.needsRoleSelection) {
+        res.redirect('/auth/select-role');
+    } else {
+        res.redirect('/');
+    }
+  });
+
+// Rota para Logout
+app.get('/logout', (req, res, next) => {
+    req.logout((err) => {
+        if (err) { return next(err); }
+        res.redirect('/');
     });
 });
 
-// Rota GET para Cadastro (Exibir Formulário)
+// Rota para Seleção de Perfil (NOVO)
+app.get('/auth/select-role', async (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.redirect('/login');
+    }
+    res.render('select-role'); 
+});
+
+// Rota 5: Confirmação do Perfil (NOVO)
+app.post('/auth/confirm-role', async (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.redirect('/login');
+    }
+    const isBeatmaker = req.body.role === 'beatmaker' ? 1 : 0;
+    const producerName = req.body.producer_name || null;
+    const userId = req.user.UserID;
+
+    try {
+        await db.run(`
+            UPDATE Users
+            SET IsBeatmaker = ?, ProducerName = ?
+            WHERE UserID = ?
+        `, [isBeatmaker, producerName, userId]);
+
+        req.user.isBeatmaker = isBeatmaker;
+        req.user.producerName = producerName;
+
+        res.redirect('/perfil');
+    } catch (err) {
+        console.error('Erro ao definir função do usuário:', err);
+        res.status(500).send('Erro ao finalizar o cadastro.');
+    }
+});
+
+// --- ROTAS DE COMPRAS E CHECKOUT (NOVAS) ---
+
+// Rota 6: Inicia o processo de Checkout/Pagamento
+app.post('/checkout', async (req, res) => {
+    const currentUser = req.isAuthenticated() ? req.user : req.session.user;
+
+    if (!currentUser) {
+        return res.status(401).json({ message: 'Você precisa estar logado para finalizar a compra.' });
+    }
+
+    if (!req.session.cart || req.session.cart.length === 0) {
+        return res.status(400).json({ message: 'O carrinho está vazio.' });
+    }
+
+    let totalAmount = 0;
+    const cartItems = req.session.cart;
+
+    try {
+        // Validação e cálculo do total (obter preços frescos do DB)
+        const beatIds = cartItems.map(item => `'${item.id}'`).join(',');
+        const dbBeats = await db.all(`SELECT BeatID as id, Price as price, UploadedByUserID FROM Beats WHERE BeatID IN (${beatIds})`);
+        
+        if (dbBeats.length !== cartItems.length) {
+            return res.status(400).json({ message: 'Um ou mais beats no carrinho não são válidos.' });
+        }
+
+        const beatMap = new Map(dbBeats.map(beat => [beat.id, beat]));
+
+        for (const item of cartItems) {
+            const beatDetails = beatMap.get(item.id);
+            if (!beatDetails) continue; 
+            totalAmount += beatDetails.price * (item.quantity || 1);
+        }
+
+        // 1. Criação do OrderToken (ID ÚNICO para rastrear o pedido)
+        const orderToken = `ORDER_${Date.now()}_${currentUser.UserID}`;
+        
+        // 2. Salvamos os detalhes da transação para uso na rota de sucesso do Webhook (simulada na sessão)
+        req.session.pendingOrder = {
+            orderToken: orderToken,
+            items: cartItems,
+            total: totalAmount,
+            userId: currentUser.UserID
+        };
+
+        // 3. Constrói a URL de redirecionamento para a Kiwify
+        const redirectUrl = `${KIWIFY_CHECKOUT_BASE_URL}?ref=${orderToken}&total=${totalAmount.toFixed(2)}`;
+
+        res.json({ success: true, redirectUrl: redirectUrl });
+
+    } catch (err) {
+        console.error('Erro durante o checkout:', err);
+        res.status(500).json({ message: 'Erro interno ao processar o checkout.' });
+    }
+});
+
+// Rota 7: Webhook Simulado de Sucesso de Pagamento (Rota de Retorno da Kiwify)
+app.get('/payment-success', async (req, res) => {
+    const orderToken = req.query.token;
+    const pendingOrder = req.session.pendingOrder;
+
+    if (!pendingOrder || pendingOrder.orderToken !== orderToken) {
+        return res.render('message', { title: 'Pagamento Inválido', message: 'Token de pedido não encontrado ou inválido.' });
+    }
+
+    try {
+        const { items, total, userId } = pendingOrder;
+        const buyerUsername = (req.user && req.user.username) || 'Convidado';
+
+        // 1. Processar cada item do carrinho como compra e venda
+        for (const item of items) {
+            const beatDetails = await db.get(`SELECT UploadedByUserID, ArtistName FROM Beats WHERE BeatID = ?`, [item.id]);
+            
+            if (beatDetails) {
+                // Registrar Compra (para o comprador)
+                await db.run(`
+                    INSERT INTO Purchases (UserID, BeatID, AmountPaid, LicenseType)
+                    VALUES (?, ?, ?, ?)
+                `, [userId, item.id, item.price, 'Standard']); // Licença simplificada
+
+                // Registrar Venda (para o beatmaker)
+                await db.run(`
+                    INSERT INTO Sales (BeatID, SellerUserID, BuyerUsername, AmountReceived, LicenseType)
+                    VALUES (?, ?, ?, ?, ?)
+                `, [item.id, beatDetails.UploadedByUserID, buyerUsername, item.price, 'Standard']);
+                
+                // Atualizar contagem de vendas do beat
+                await db.run(`UPDATE Beats SET SalesCount = SalesCount + 1 WHERE BeatID = ?`, [item.id]);
+            }
+        }
+
+        // 2. Limpar o carrinho e o pedido pendente
+        req.session.cart = [];
+        delete req.session.pendingOrder;
+
+        // 3. Renderizar a tela de sucesso
+        res.render('payment-success', { total: total.toFixed(2), items: items.length });
+
+    } catch (err) {
+        console.error('Erro ao finalizar transação:', err);
+        res.render('message', { title: 'Erro de Transação', message: 'Ocorreu um erro interno ao registrar seu pedido. Entre em contato com o suporte.' });
+    }
+});
+
+
+// --- ROTAS DA APLICAÇÃO (AJUSTADAS PARA UPLOAD) ---
+
+app.get('/', async (req, res) => {
+    try {
+        const trendingBeatsResult = await db.all(`
+            SELECT BeatID as id, Title, ArtistName as artist, Price as price, CoverImageURL as cover, AudioFileURL as audioUrl, IsFeatured as featured
+            FROM Beats
+            WHERE IsFeatured = 1 AND Status = 'À Venda'
+        `);
+        const newReleasesResult = await db.all(`
+            SELECT BeatID as id, Title, ArtistName as artist, Price as price, CoverImageURL as cover, AudioFileURL as audioUrl
+            FROM Beats
+            WHERE Status = 'À Venda'
+            ORDER BY UploadDate DESC
+        `);
+
+        res.render('index', {
+            trendingBeats: trendingBeatsResult,
+            newReleases: newReleasesResult
+        });
+    } catch (err) {
+        console.error('Erro ao carregar beats para a página inicial:', err);
+        res.status(500).send('Erro interno do servidor ao carregar beats.');
+    }
+});
+
 app.get('/register', (req, res) => {
     res.render('register', { messages: {} });
 });
 
-// Rota POST para Cadastro (Processar Formulário)
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
     const { username, email, password, confirm_password, is_beatmaker, producer_name, bio } = req.body;
     let errors = {};
 
@@ -143,47 +476,114 @@ app.post('/register', (req, res) => {
         return res.render('register', { messages: errors, formData: req.body });
     }
 
-    res.render('login', { messages: { success: 'Cadastro realizado com sucesso! Faça login para continuar.' } });
+    try {
+        const isBeatmaker = is_beatmaker === 'on' ? 1 : 0;
+        await db.run(`
+            INSERT INTO Users (Username, Email, PasswordHash, IsBeatmaker, ProducerName, Bio)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `, [username, email, password, isBeatmaker, producer_name || null, bio || null]);
+        
+        res.render('login', { messages: { success: 'Cadastro realizado com sucesso! Faça login para continuar.' } });
+    } catch (err) {
+        console.error('Erro ao registrar usuário:', err);
+        errors.error = 'Email ou nome de usuário já cadastrado ou erro no registro.';
+        res.render('register', { messages: errors, formData: req.body });
+    }
 });
 
-// Rota GET para Login (Exibir Formulário)
 app.get('/login', (req, res) => {
     res.render('login', { messages: {} });
 });
 
-// Rota POST para Login (Processar Formulário)
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     const { email, password } = req.body;
+    try {
+        const user = await db.get(`
+            SELECT UserID, Username, Email, PasswordHash, IsBeatmaker, ProducerName, Bio, ProfilePicURL
+            FROM Users
+            WHERE Email = ?
+        `, [email]);
 
-    // Simulação de login: Se as credenciais forem corretas, redireciona para o perfil.
-    if (email === 'guilhermecezartec@gmail.com' && password === '123456') {
-        res.redirect('/perfil');
-    } else {
-        res.render('login', { messages: { error: 'Email ou senha inválidos.' }, formData: { email } });
+        if (user) {
+            if (password === user.PasswordHash) {
+                req.session.user = {
+                    UserID: user.UserID,
+                    username: user.Username,
+                    email: user.Email,
+                    isBeatmaker: user.IsBeatmaker,
+                    producerName: user.ProducerName,
+                    bio: user.Bio,
+                    profilePic: user.ProfilePicURL
+                };
+                res.redirect('/perfil');
+            } else {
+                res.render('login', { messages: { error: 'Email ou senha inválidos.' }, formData: { email } });
+            }
+        } else {
+            res.render('login', { messages: { error: 'Email ou senha inválidos.' }, formData: { email } });
+        }
+    } catch (err) {
+        console.error('Erro ao tentar fazer login:', err);
+        res.status(500).send('Erro interno do servidor ao tentar fazer login.');
     }
 });
 
-// Rota para a Página de Catálogo (a ser implementada)
 app.get('/catalogo', (req, res) => {
     res.send('Página de Catálogo (a ser implementada)');
 });
 
-// Rota para a Página de Perfil
-app.get('/perfil', (req, res) => {
-    res.render('perfil', { user: userData });
+app.get('/perfil', async (req, res) => {
+    // Usamos req.user se o login for via Passport, ou req.session.user se for via formulário tradicional
+    const currentUserData = req.isAuthenticated() ? req.user : req.session.user;
+
+    if (!currentUserData) {
+        return res.status(401).send('Não autorizado. Por favor, faça login.');
+    }
+
+    try {
+        const userFromDB = await db.get(`
+            SELECT UserID, Username, Email, IsBeatmaker, ProducerName, Bio, ProfilePicURL
+            FROM Users
+            WHERE UserID = ?
+        `, [currentUserData.UserID]);
+
+        if (userFromDB) {
+            res.render('perfil', { user: userFromDB });
+        } else {
+            res.status(404).send('Perfil do usuário não encontrado.');
+        }
+    } catch (err) {
+        console.error('Erro ao carregar perfil:', err);
+        res.status(500).send('Erro interno do servidor ao carregar perfil.');
+    }
 });
 
-// Rota para a Página de Carrinho de Compras (GET)
-app.get('/carrinho', (req, res) => {
-    const cartItems = (req.session.cart || []).map(item => ({
-        ...item,
-        price: parseFloat(item.price) || 0,
-        quantity: parseInt(item.quantity) || 0
-    }));
+app.get('/carrinho', async (req, res) => {
+    let cartItems = [];
+    if (req.session.cart && req.session.cart.length > 0) {
+        try {
+            const beatIds = req.session.cart.map(item => `'${item.id}'`).join(',');
+            
+            if (beatIds) {
+                const beatsInCartResult = await db.all(`
+                    SELECT BeatID as id, Title, ArtistName as artist, Price as price, CoverImageURL as cover
+                    FROM Beats
+                    WHERE BeatID IN (${beatIds})
+                `);
+                const beatsMap = new Map(beatsInCartResult.map(beat => [beat.id, beat]));
+
+                cartItems = req.session.cart.map(sessionItem => {
+                    const dbBeat = beatsMap.get(sessionItem.id);
+                    return dbBeat ? { ...dbBeat, quantity: sessionItem.quantity } : null;
+                }).filter(item => item !== null);
+            }
+        } catch (err) {
+            console.error('Erro ao buscar detalhes de beats para o carrinho:', err);
+        }
+    }
     res.render('cart', { cartItems: cartItems });
 });
 
-// Rota para Remover um Item do Carrinho (DELETE)
 app.delete('/carrinho/remover/:id', (req, res) => {
     const itemIdToRemove = req.params.id;
     let cart = req.session.cart || [];
@@ -195,12 +595,11 @@ app.delete('/carrinho/remover/:id', (req, res) => {
         req.session.cart = cart;
         res.status(200).json({ message: 'Item removido com sucesso!' });
     } else {
-        res.status(404).json({ message: 'Item não encontrado.' });
+        res.status(404).json({ message: 'Item não encontrado no carrinho.' });
     }
 });
 
-// Rota para Adicionar um Item ao Carrinho (POST)
-app.post('/carrinho/adicionar', (req, res) => {
+app.post('/carrinho/adicionar', async (req, res) => {
     const { id, title, artist, price, cover } = req.body;
 
     if (!id || !title || !artist || !price || !cover) {
@@ -221,154 +620,337 @@ app.post('/carrinho/adicionar', (req, res) => {
     res.status(200).json({ message: 'Item adicionado ao carrinho com sucesso!', cartCount: cart.length });
 });
 
-// Rota para a página 'Começar a Vender'
-// Agora redireciona para o formulário de adicionar novo beat se o usuário for beatmaker
 app.get('/vender', (req, res) => {
-    // Em um app real, você verificaria a autenticação e o status de beatmaker do usuário
-    if (userData.isBeatmaker) { // Usando userData global para simulação
+    const currentUser = req.isAuthenticated() ? req.user : req.session.user;
+
+    if (!currentUser) {
+        return res.status(401).send('Não autorizado. Por favor, faça login.');
+    }
+    
+    // Verifica se IsBeatmaker é 1 (true)
+    if (currentUser.isBeatmaker === 1) { 
         res.redirect('/vender-beat/novo');
     } else {
-        // Se o usuário não for beatmaker, pode redirecionar para uma página de informações
-        // ou exibir uma mensagem.
-        res.send('Para começar a vender, você precisa ser um Beatmaker registrado.');
+        res.status(403).send('Para começar a vender, você precisa ser um Beatmaker registrado.');
     }
 });
 
-// Rota para a página "Minhas Compras e Vendas"
-app.get('/meus-negocios', (req, res) => {
-    res.render('my-transactions', {
-        user: userData, // Passa o objeto do usuário (para verificar 'isBeatmaker')
-        purchases: userPurchasesData,
-        sales: beatmakerSalesData,
-        beatsForSale: beatmakerBeatsForSale // Este array é agora manipulável pelas rotas abaixo
+app.get('/meus-negocios', async (req, res) => {
+    const currentUser = req.isAuthenticated() ? req.user : req.session.user;
+
+    if (!currentUser) {
+        return res.status(401).send('Não autorizado. Por favor, faça login.');
+    }
+
+    const loggedInUserId = currentUser.UserID;
+
+    try {
+        
+        // Compras
+        const purchases = await db.all(`
+            SELECT PurchaseID as id, PurchaseDate as date, AmountPaid as amount, LicenseType as license,
+                   b.BeatID as item_id, b.Title as item_title, b.ArtistName as item_artist, b.Price as item_price, b.CoverImageURL as item_cover
+            FROM Purchases p
+            JOIN Beats b ON p.BeatID = b.BeatID
+            WHERE p.UserID = ?
+            ORDER BY PurchaseDate DESC
+        `, [loggedInUserId]);
+        
+        const formattedPurchases = purchases.map(row => ({
+            id: row.id,
+            date: new Date(row.date).toISOString().split('T')[0],
+            item: {
+                id: row.item_id,
+                title: row.item_title,
+                artist: row.item_artist,
+                price: row.item_price,
+                cover: row.item_cover
+            },
+            amount: row.amount,
+            license: row.license
+        }));
+
+        // Beats colocados à venda pelo usuário (Seller)
+        const beatsForSale = await db.all(`
+            SELECT BeatID as id, Title, Genre, Price as price, CoverImageURL as cover, Status, SalesCount
+            FROM Beats
+            WHERE UploadedByUserID = ?
+            ORDER BY UploadDate DESC
+        `, [loggedInUserId]);
+
+        // Vendas
+        const sales = await db.all(`
+            SELECT SaleID as id, SaleDate as date, BuyerUsername as buyer, AmountReceived as amount, LicenseType as license,
+                   b.BeatID as beat_id, b.Title as beat_title, b.Genre as beat_genre, b.Price as beat_price, b.CoverImageURL as beat_cover
+            FROM Sales s
+            JOIN Beats b ON s.BeatID = b.BeatID
+            WHERE s.SellerUserID = ?
+            ORDER BY SaleDate DESC
+        `, [loggedInUserId]);
+
+        const formattedSales = sales.map(row => ({
+            id: row.id,
+            date: new Date(row.date).toISOString().split('T')[0],
+            beat: {
+                id: row.beat_id,
+                title: row.beat_title,
+                genre: row.beat_genre,
+                price: row.beat_price,
+                cover: row.beat_cover
+            },
+            buyer: row.buyer,
+            amount: row.amount,
+            license: row.license
+        }));
+
+
+        res.render('my-transactions', {
+            user: currentUser,
+            purchases: formattedPurchases,
+            sales: formattedSales,
+            beatsForSale: beatsForSale
+        });
+
+    } catch (err) {
+        console.error('Erro ao carregar dados para Minhas Compras e Vendas:', err);
+        res.status(500).send('Erro interno do servidor ao carregar transações.');
+    }
+});
+
+app.get('/vender-beat/:action/:id?', async (req, res) => {
+    const action = req.params.action;
+    const beatId = req.params.id;
+    let beatToEdit = null;
+
+    const currentUser = req.isAuthenticated() ? req.user : req.session.user;
+
+    if (!currentUser || currentUser.isBeatmaker !== 1) {
+        return res.status(403).send('Não autorizado. Você precisa ser um beatmaker para gerenciar beats.');
+    }
+
+    if (action === 'editar' && beatId) {
+        try {
+            beatToEdit = await db.get(`
+                SELECT BeatID as id, Title, Genre, Price as price, CoverImageURL as cover, Status, AudioFileURL as audioUrl
+                FROM Beats
+                WHERE BeatID = ? AND UploadedByUserID = ?
+            `, [beatId, currentUser.UserID]);
+
+            if (!beatToEdit) {
+                return res.status(404).send('Beat não encontrado ou você não tem permissão para editá-lo.');
+            }
+        } catch (err) {
+            console.error('Erro ao buscar beat para edição:', err);
+            return res.status(500).send('Erro interno do servidor ao carregar beat para edição.');
+        }
+    }
+
+    res.render('create-edit-beat', {
+        title: action === 'novo' ? 'Adicionar Novo Beat' : `Editar Beat: ${beatToEdit ? beatToEdit.Title : ''}`,
+        beat: beatToEdit,
+        isEdit: action === 'editar'
     });
 });
 
-// --- ROTAS PARA GERENCIAMENTO DE BEATS (CRUD para Beatmakers) ---
+app.post('/api/beats', upload, async (req, res) => { 
+    const currentUser = req.isAuthenticated() ? req.user : req.session.user;
+    
+    // Verifica erros do Multer (ex: arquivo não é imagem/áudio)
+    if (req.fileValidationError) {
+        return res.status(400).json({ message: req.fileValidationError });
+    }
 
-// Rota para exibir o formulário de criação/edição de beat
-// GET /vender-beat/novo ou GET /vender-beat/editar/:id
-app.get('/vender-beat/:action/:id?', (req, res) => {
-    const action = req.params.action; // 'novo' ou 'editar'
-    const beatId = req.params.id; // ID do beat se for editar
+    if (!currentUser || currentUser.isBeatmaker != 1) { 
+        return res.status(403).json({ message: 'Não autorizado. Você precisa ser um beatmaker para adicionar beats.' });
+    }
+    
+    // Verifica se os arquivos necessários foram enviados
+    if (!req.files || !req.files.cover_image || !req.files.audio_file) {
+        return res.status(400).json({ message: 'A capa e o arquivo de áudio são obrigatórios.' });
+    }
 
-    if (action === 'novo') {
-        res.render('create-edit-beat', { title: 'Adicionar Novo Beat', beat: null, isEdit: false });
-    } else if (action === 'editar' && beatId) {
-        // Em um app real, você buscaria o beat do DB e verificaria se pertence ao usuário logado
-        const beatToEdit = beatmakerBeatsForSale.find(b => String(b.id) === String(beatId));
-        if (beatToEdit) {
-            res.render('create-edit-beat', { title: `Editar Beat: ${beatToEdit.title}`, beat: beatToEdit, isEdit: true });
-        } else {
-            res.status(404).send('Beat não encontrado.');
-        }
-    } else {
-        res.status(400).send('Requisição inválida.');
+    const { title, genre, price, status } = req.body;
+    const uploaderUserId = currentUser.UserID;
+    
+    // Extrai o caminho dos arquivos salvos pelo Multer
+    const coverImagePath = `/img/beat-covers/${req.files.cover_image[0].filename}`;
+    const audioFileName = req.files.audio_file[0].filename;
+
+    if (!title || !genre || !price) {
+        // Se faltar dados do corpo, tentamos limpar os arquivos enviados
+        if (req.files.cover_image) fs.unlinkSync(req.files.cover_image[0].path);
+        if (req.files.audio_file) fs.unlinkSync(req.files.audio_file[0].path);
+        return res.status(400).json({ message: 'Dados do beat incompletos.' });
+    }
+
+    try {
+        const newBeatId = 'beat_' + Date.now().toString().slice(-8);
+        const artistName = currentUser.producerName || currentUser.username; 
+
+        await db.run(`
+            INSERT INTO Beats (BeatID, Title, ArtistName, Price, CoverImageURL, AudioFileURL, Genre, Status, SalesCount, IsFeatured, UploadedByUserID)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [newBeatId, title, artistName, parseFloat(price), coverImagePath, audioFileName, genre, status || 'À Venda', 0, 0, uploaderUserId]);
+        
+        res.status(201).json({ message: 'Beat adicionado com sucesso!', beatId: newBeatId });
+    } catch (err) {
+        console.error('Erro ao adicionar beat:', err);
+        // Em caso de erro no DB, tentamos limpar os arquivos enviados
+        if (req.files.cover_image) fs.unlinkSync(req.files.cover_image[0].path);
+        if (req.files.audio_file) fs.unlinkSync(req.files.audio_file[0].path);
+        res.status(500).json({ message: 'Erro interno do servidor ao adicionar beat.' });
     }
 });
 
-// Rota para Criar um Novo Beat (POST)
-app.post('/api/beats', (req, res) => {
-    const { title, genre, price, cover, status } = req.body;
+app.put('/api/beats/:id', upload, async (req, res) => { // Adicionando o middleware upload aqui!
+    const currentUser = req.isAuthenticated() ? req.user : req.session.user;
+    if (!currentUser || currentUser.isBeatmaker !== 1) {
+        return res.status(403).json({ message: 'Não autorizado. Você precisa ser um beatmaker para editar beats.' });
+    }
 
-    // Em um app real, o ID seria gerado por um banco de dados
-    const newBeatId = 'mybeat' + (Date.now().toString().slice(-5)); // Gera um ID simples e único
-    const newBeat = {
-        id: newBeatId,
-        title,
-        genre,
-        price: parseFloat(price),
-        cover: cover || '/img/default_beat_cover.jpg',
-        status: status || 'Rascunho',
-        salesCount: 0,
-        audioUrl: `/play-beat/${newBeatId}` // Define a URL de áudio protegida para o novo beat
-    };
-
-    beatmakerBeatsForSale.push(newBeat); // Adiciona ao array de beats à venda
-    console.log('Novo beat adicionado:', newBeat);
-
-    res.status(201).json({ message: 'Beat adicionado com sucesso!', beat: newBeat });
-});
-
-// Rota para Atualizar um Beat Existente (PUT)
-app.put('/api/beats/:id', (req, res) => {
     const beatIdToUpdate = req.params.id;
-    const { title, genre, price, cover, status } = req.body;
+    const { title, genre, price, status } = req.body;
+    const uploaderUserId = currentUser.UserID;
 
-    const beatIndex = beatmakerBeatsForSale.findIndex(b => String(b.id) === String(beatIdToUpdate));
+    try {
+        // Busca o beat antigo para saber o caminho dos arquivos
+        const oldBeat = await db.get("SELECT CoverImageURL, AudioFileURL FROM Beats WHERE BeatID = ?", [beatIdToUpdate]);
 
-    if (beatIndex > -1) {
-        // Atualiza os dados do beat, mantendo os que não foram alterados
-        beatmakerBeatsForSale[beatIndex] = {
-            ...beatmakerBeatsForSale[beatIndex],
-            title: title !== undefined ? title : beatmakerBeatsForSale[beatIndex].title,
-            genre: genre !== undefined ? genre : beatmakerBeatsForSale[beatIndex].genre,
-            price: price !== undefined ? parseFloat(price) : beatmakerBeatsForSale[beatIndex].price,
-            cover: cover !== undefined ? cover : beatmakerBeatsForSale[beatIndex].cover,
-            status: status !== undefined ? status : beatmakerBeatsForSale[beatIndex].status
-            // audioUrl não é atualizado aqui, assume que é fixo pelo ID
-        };
-        console.log(`Beat ${beatIdToUpdate} atualizado:`, beatmakerBeatsForSale[beatIndex]);
-        res.status(200).json({ message: 'Beat atualizado com sucesso!', beat: beatmakerBeatsForSale[beatIndex] });
-    } else {
-        res.status(404).json({ message: 'Beat não encontrado para atualização.' });
+        // Define os novos caminhos ou mantém os antigos
+        const newCoverImagePath = req.files && req.files.cover_image ? `/img/beat-covers/${req.files.cover_image[0].filename}` : oldBeat.CoverImageURL;
+        const newAudioFileName = req.files && req.files.audio_file ? req.files.audio_file[0].filename : oldBeat.AudioFileURL;
+        
+        // Se um novo arquivo foi enviado, excluímos o antigo
+        if (req.files && req.files.cover_image) {
+            fs.unlinkSync(path.join(__dirname, 'public', oldBeat.CoverImageURL)); // Deve usar oldBeat.CoverImageURL aqui
+        }
+        if (req.files && req.files.audio_file) {
+            fs.unlinkSync(path.join(__dirname, 'private_audio', oldBeat.AudioFileURL));
+        }
+
+        const result = await db.run(`
+            UPDATE Beats
+            SET Title = ?, Genre = ?, Price = ?,
+                CoverImageURL = ?, AudioFileURL = ?, Status = ?
+            WHERE BeatID = ? AND UploadedByUserID = ?
+        `, [title, genre, parseFloat(price), newCoverImagePath, newAudioFileName, status, beatIdToUpdate, uploaderUserId]);
+
+        if (result.changes > 0) {
+            res.status(200).json({ message: 'Beat atualizado com sucesso!' });
+        } else {
+            res.status(404).json({ message: 'Beat não encontrado ou você não tem permissão para editá-lo.' });
+        }
+    } catch (err) {
+        console.error('Erro ao atualizar beat:', err);
+        res.status(500).json({ message: 'Erro interno do servidor ao atualizar beat.' });
     }
 });
 
-// Rota para Excluir um Beat (DELETE)
-app.delete('/api/beats/:id', (req, res) => {
+app.delete('/api/beats/:id', async (req, res) => {
+    const currentUser = req.isAuthenticated() ? req.user : req.session.user;
+    if (!currentUser || currentUser.isBeatmaker !== 1) {
+        return res.status(403).json({ message: 'Não autorizado. Você precisa ser um beatmaker para excluir beats.' });
+    }
+
     const beatIdToDelete = req.params.id;
+    const uploaderUserId = currentUser.UserID;
 
-    const initialLength = beatmakerBeatsForSale.length;
-    beatmakerBeatsForSale = beatmakerBeatsForSale.filter(b => String(b.id) !== String(beatIdToDelete));
+    try {
+        // Busca para deletar arquivos físicos
+        const beatToDelete = await db.get("SELECT CoverImageURL, AudioFileURL FROM Beats WHERE BeatID = ?", [beatIdToDelete]);
 
-    if (beatmakerBeatsForSale.length < initialLength) {
-        console.log(`Beat ${beatIdToDelete} excluído com sucesso.`);
-        res.status(200).json({ message: 'Beat excluído com sucesso!' });
-    } else {
-        res.status(404).json({ message: 'Beat não encontrado para exclusão.' });
+        if (beatToDelete) {
+            // Deleta arquivos físicos
+            const coverPath = path.join(__dirname, 'public', beatToDelete.CoverImageURL);
+            const audioPath = path.join(__dirname, 'private_audio', beatToDelete.AudioFileURL);
+            if (fs.existsSync(coverPath)) fs.unlinkSync(coverPath);
+            if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
+        }
+
+        const result = await db.run(`
+            DELETE FROM Beats
+            WHERE BeatID = ? AND UploadedByUserID = ?
+        `, [beatIdToDelete, uploaderUserId]);
+
+        if (result.changes > 0) {
+            res.status(200).json({ message: 'Beat excluído com sucesso!' });
+        } else {
+            res.status(404).json({ message: 'Beat não encontrado ou você não tem permissão para excluí-lo.' });
+        }
+    } catch (err) {
+        console.error('Erro ao excluir beat:', err);
+        res.status(500).json({ message: 'Erro interno do servidor ao excluir beat.' });
     }
 });
 
-// --- ROTA PROTEGIDA PARA SERVIR ARQUIVOS DE ÁUDIO ---
-// Esta rota serve os arquivos de áudio de uma pasta privada, impedindo download direto via URL pública.
-app.get('/play-beat/:beatId', (req, res) => {
+
+app.get('/play-beat/:beatId', async (req, res) => {
     const beatId = req.params.beatId;
 
-    // Em um cenário real, você faria verificações de permissão aqui:
-    // 1. O usuário está logado?
-    // 2. O usuário tem permissão para ouvir este beat (ex: beat é público, ou usuário o comprou)?
-    // Para este exemplo, vamos permitir a audição de qualquer beat existente nos dados.
+    try {
+        const foundBeat = await db.get(`
+            SELECT AudioFileURL
+            FROM Beats
+            WHERE BeatID = ?
+        `, [beatId]);
 
-    // Encontra o beat em todos os seus dados de exemplo
-    const allBeats = [...trendingBeatsData, ...newReleasesData, ...beatmakerBeatsForSale];
-    const foundBeat = allBeats.find(beat => String(beat.id) === String(beatId));
-
-    if (foundBeat) {
-        // Constrói o caminho completo para o arquivo de áudio na pasta 'private_audio'
-        // É crucial que esta pasta NÃO esteja dentro de 'public'.
-        const audioFilePath = path.join(__dirname, 'private_audio', `${beatId}.mp3`);
-
-        // Envia o arquivo. Por padrão, res.sendFile não define Content-Disposition: attachment,
-        // o que permite que o navegador o reproduza sem forçar o download.
-        res.sendFile(audioFilePath, (err) => {
-            if (err) {
-                console.error(`Erro ao servir o arquivo de áudio ${audioFilePath}:`, err);
-                // Se o arquivo não for encontrado no servidor, envia 404
-                if (err.code === 'ENOENT') {
-                    return res.status(404).send('Arquivo de áudio não encontrado.');
-                }
-                // Para outros erros, envia 500
-                res.status(500).send('Erro interno do servidor ao tentar tocar o beat.');
+        if (foundBeat && foundBeat.AudioFileURL) {
+            const filename = foundBeat.AudioFileURL; 
+            const audioFilePath = path.join(__dirname, 'private_audio', `${filename}`);
+            
+            if (!fs.existsSync(audioFilePath)) {
+                return res.status(404).send('Arquivo de áudio não encontrado no servidor.');
             }
-        });
-    } else {
-        res.status(404).send('Beat não encontrado.');
+            
+            res.set('Content-Type', 'audio/mp3');
+
+            const ffprobe = require('ffprobe-static');
+            
+            const ffprobeProcess = spawn(ffprobe.path, [
+                '-v', 'error',
+                '-show_entries', 'format=duration',
+                '-of', 'default=noprint_wrappers=1:nokey=1',
+                audioFilePath
+            ]);
+
+            let fileDuration = 0;
+            ffprobeProcess.stdout.on('data', (data) => {
+                fileDuration = parseFloat(data.toString());
+            });
+
+            ffprobeProcess.on('close', (code) => {
+                if (code !== 0) {
+                    console.error('Erro ao obter a duração do arquivo de áudio.');
+                    return res.status(500).send('Erro ao processar o áudio.');
+                }
+                
+                const cutterProcess = spawn('ffmpeg', [
+                    '-i', audioFilePath,
+                    '-ss', '0',
+                    '-t', `${Math.min(15, fileDuration)}`,
+                    '-f', 'mp3',
+                    '-acodec', 'copy',
+                    'pipe:1'
+                ]);
+
+                cutterProcess.stdout.pipe(res);
+
+                cutterProcess.on('error', (err) => {
+                    console.error('Erro ao cortar o áudio com ffmpeg:', err);
+                    res.status(500).send('Erro ao processar o áudio.');
+                });
+            });
+
+        } else {
+            res.status(404).send('Beat ou URL de áudio não encontrado.');
+        }
+    } catch (err) {
+        console.error('Erro ao buscar URL de áudio no DB ou processar o arquivo:', err);
+        res.status(500).send('Erro interno do servidor ao buscar informações do beat.');
     }
 });
 
 
-// --- Inicialização do Servidor ---
 app.listen(PORT, () => {
     console.log(`Servidor TROBeats rodando em http://localhost:${PORT}`);
     console.log(`Acesse a página inicial em: http://localhost:${PORT}/`);

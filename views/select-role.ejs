@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selecione Seu Perfil - TROBeats</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <h1>Bem-vindo à TROBeats!</h1>
+        <p>Parece que é sua primeira vez aqui. Escolha seu perfil para começar:</p>
+
+        <form action="/auth/confirm-role" method="POST" id="roleForm">
+            <div class="role-selection">
+                <label>
+                    <input type="radio" name="role" value="comprador" required onclick="toggleProducerName(false)">
+                    Sou um **Artista/Comprador** (Busco beats)
+                </label>
+                <label>
+                    <input type="radio" name="role" value="beatmaker" required onclick="toggleProducerName(true)">
+                    Sou um **Beatmaker** (Quero vender meus beats)
+                </label>
+            </div>
+            
+            <div id="producerNameField" style="display:none; margin-top: 20px;">
+                <label for="producer_name">Nome Artístico/Produtor (Obrigatório para Beatmakers):</label>
+                <input type="text" id="producer_name" name="producer_name" placeholder="Ex: Lil.Nego">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Continuar</button>
+        </form>
+    </div>
+
+    <script>
+        function toggleProducerName(show) {
+            const field = document.getElementById('producerNameField');
+            const input = document.getElementById('producer_name');
+            if (show) {
+                field.style.display = 'block';
+                input.setAttribute('required', 'required');
+            } else {
+                field.style.display = 'none';
+                input.removeAttribute('required');
+                input.value = ''; // Limpa o valor para evitar envio acidental
+            }
+        }
+
+        document.getElementById('roleForm').addEventListener('submit', function(event) {
+            const beatmakerRadio = document.querySelector('input[name="role"][value="beatmaker"]');
+            const producerNameInput = document.getElementById('producer_name');
+            
+            if (beatmakerRadio.checked && !producerNameInput.value.trim()) {
+                alert('O Nome Artístico é obrigatório para Beatmakers.'); // Usando alert apenas para exemplo, use modal em produção
+                event.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TROBeats - <%= title %></title>
+    <title><%= title %> - TROBeats</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -11,50 +11,79 @@
     <header class="header">
         <div class="container header-content">
             <div class="logo">
-                <a href="/" aria-label="Página Inicial"> <h1>TROBeats</h1> </a>
+                <a href="/"> <h1>TROBeats</h1> </a>
             </div>
             <div class="header-actions">
                 <a href="/perfil" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
-                <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
+                <a href="/logout" class="btn btn-secondary">Sair</a>
             </div>
         </div>
     </header>
 
-    <main class="main-content">
-        <section class="form-section section-padding">
-            <div class="container">
-                <h2><%= title %></h2>
-                <form id="beatForm" class="general-form">
-                    <div class="form-group">
-                        <label for="beatTitle">Título do Beat:</label>
-                        <input type="text" id="beatTitle" name="title" value="<%= beat ? beat.title : '' %>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="beatGenre">Gênero:</label>
-                        <input type="text" id="beatGenre" name="genre" value="<%= beat ? beat.genre : '' %>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="beatPrice">Preço (R$):</label>
-                        <input type="number" id="beatPrice" name="price" step="0.01" value="<%= beat ? beat.price : '0.00' %>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="beatCover">URL da Capa:</label>
-                        <input type="url" id="beatCover" name="cover" value="<%= beat ? beat.cover : '' %>">
-                        <small>Ex: /img/minha_capa.jpg ou https://exemplo.com/capa.png</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="beatStatus">Status:</label>
-                        <select id="beatStatus" name="status">
-                            <option value="À Venda" <%= beat && beat.status === 'À Venda' ? 'selected' : '' %>>À Venda</option>
-                            <option value="Rascunho" <%= beat && beat.status === 'Rascunho' ? 'selected' : '' %>>Rascunho</option>
-                            <option value="Arquivado" <%= beat && beat.status === 'Arquivado' ? 'selected' : '' %>>Arquivado</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary"><%= isEdit ? 'Salvar Alterações' : 'Adicionar Beat' %></button>
-                    <a href="/meus-negocios" class="btn btn-secondary">Cancelar</a>
-                </form>
-            </div>
-        </section>
+    <main class="main-content section-padding">
+        <div class="container">
+            <h2><%= title %></h2>
+            
+            <!-- CRUCIAL: Adicionar enctype="multipart/form-data" para o upload de arquivos -->
+            <form id="beatForm" 
+                  action="/api/beats/<%= isEdit ? beat.id : '' %>" 
+                  method="POST" 
+                  enctype="multipart/form-data" 
+                  class="beat-form">
+
+                <div id="messageBox" class="message-box" style="display: none;"></div>
+
+                <div class="form-group">
+                    <label for="title">Título do Beat:</label>
+                    <input type="text" id="title" name="title" value="<%= isEdit ? beat.Title : '' %>" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="genre">Gênero:</label>
+                    <input type="text" id="genre" name="genre" value="<%= isEdit ? beat.Genre : '' %>" placeholder="Ex: Trap, Drill, R&B" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Preço (R$):</label>
+                    <input type="number" id="price" name="price" value="<%= isEdit ? beat.Price : '0.00' %>" step="0.01" required>
+                </div>
+
+                <!-- CAMPO DE UPLOAD DE IMAGEM -->
+                <div class="form-group">
+                    <label for="cover_image">Capa do Beat (JPG, PNG):</label>
+                    <input type="file" id="cover_image" name="cover_image" accept="image/png, image/jpeg" <%= isEdit ? '' : 'required' %>>
+                    <% if (isEdit && beat.CoverImageURL) { %>
+                        <small>Capa atual: <a href="<%= beat.CoverImageURL %>" target="_blank">Visualizar Capa</a>. Envie um novo arquivo para substituir.</small>
+                    <% } else if (isEdit && !beat.CoverImageURL) { %>
+                        <small>Este beat ainda não tem uma capa. Por favor, envie uma.</small>
+                    <% } %>
+                </div>
+
+                <!-- CAMPO DE UPLOAD DE ÁUDIO -->
+                <div class="form-group">
+                    <label for="audio_file">Arquivo de Áudio (MP3 da Versão Completa):</label>
+                    <input type="file" id="audio_file" name="audio_file" accept="audio/mp3, audio/mpeg" <%= isEdit ? '' : 'required' %>>
+                    <% if (isEdit && beat.AudioFileURL) { %>
+                        <small>Arquivo de áudio atual já salvo. Envie um novo arquivo para substituir.</small>
+                    <% } %>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status:</label>
+                    <select id="status" name="status" required>
+                        <option value="À Venda" <%= isEdit && beat.Status === 'À Venda' ? 'selected' : '' %>>À Venda</option>
+                        <option value="Rascunho" <%= isEdit && beat.Status === 'Rascunho' ? 'selected' : '' %>>Rascunho</option>
+                    </select>
+                </div>
+                
+
+                <button type="submit" class="btn btn-primary"><%= isEdit ? 'Salvar Alterações' : 'Adicionar Beat' %></button>
+                
+                <% if (isEdit) { %>
+                    <button type="button" class="btn btn-danger" onclick="deleteBeat('<%= beat.id %>')">Excluir Beat</button>
+                <% } %>
+            </form>
+        </div>
     </main>
 
     <footer class="footer">
@@ -62,7 +91,93 @@
             <p>&copy; 2025 TROBeats. Todos os direitos reservados.</p>
         </div>
     </footer>
+    
+    <script>
+        const form = document.getElementById('beatForm');
+        const messageBox = document.getElementById('messageBox');
+        
+        // CORRIGIDO: Injetando o valor booleano diretamente no JavaScript
+        const isEdit = <%= isEdit ? 'true' : 'false' %>;
 
-    <script src="/js/create-edit-beat.js"></script>
+        // Função para mostrar mensagens de erro ou sucesso
+        function showMessage(type, message) {
+            // OBS: Adicionei classes de erro/sucesso (ex: .error, .success) ao CSS para melhor visualização
+            messageBox.className = 'message-box ' + type;
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            messageBox.style.display = 'none';
+
+            // Usamos FormData para processar arquivos
+            const formData = new FormData(form);
+            
+            let url = form.action;
+            let httpMethod = 'POST'; // Inicia como POST para o Multer
+
+            // Se estiver editando, ajusta a URL e adiciona o campo _method
+            if (isEdit) {
+                 formData.append('_method', 'PUT'); 
+            }
+            
+            try {
+                // Remove campos de arquivo se estiver editando e o usuário não enviou novos
+                if (isEdit) {
+                    if (!document.getElementById('cover_image').files.length) {
+                        formData.delete('cover_image');
+                    }
+                    if (!document.getElementById('audio_file').files.length) {
+                        formData.delete('audio_file');
+                    }
+                }
+
+                const response = await fetch(url, {
+                    method: httpMethod, // O Express/Multer lida com o método PUT/POST baseado no campo _method
+                    body: formData,
+                });
+                
+                const result = await response.json(); 
+
+                if (response.ok) {
+                    showMessage('success', result.message);
+                    if (!isEdit) {
+                         // Limpar campos após novo beat ser adicionado
+                        form.reset();
+                    }
+                } else {
+                    // Erro do servidor ou erro do Multer (se o arquivo for inválido)
+                    showMessage('error', result.message || 'Erro desconhecido ao processar o beat.');
+                }
+            } catch (error) {
+                console.error('Erro de rede:', error);
+                showMessage('error', 'Erro de conexão ou servidor.');
+            }
+        });
+        
+        // Função para deletar um beat
+        async function deleteBeat(beatId) {
+            // Usando a API confirm() apenas para manter a lógica de forma simples por agora.
+            if (!confirm("Tem certeza que deseja excluir este beat? Este processo é irreversível.")) return;
+
+            try {
+                const response = await fetch(`/api/beats/${beatId}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    alert('Beat excluído com sucesso!');
+                    window.location.href = '/meus-negocios'; 
+                } else {
+                    const result = await response.json();
+                    showMessage('error', result.message || 'Erro ao excluir o beat.');
+                }
+            } catch (error) {
+                showMessage('error', 'Erro de conexão ao tentar excluir o beat.');
+            }
+        }
+    </script>
 </body>
 </html>

@@ -14,6 +14,7 @@
                 <a href="/" aria-label="Página Inicial"> <h1>TROBeats</h1> </a>
             </div>
             <div class="header-actions">
+                <a href="/vender" class="btn btn-primary">Começar a Vender</a>
                 <a href="/register" class="btn btn-secondary">Cadastre-se</a>
                 <a href="/login" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
                 <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
@@ -33,16 +34,22 @@
                                 <h3><%= beat.title %></h3>
                                 <p class="artist"><%= beat.artist %></p>
                                 <div class="beat-actions">
+                                    
                                     <span class="price">R$<%= parseFloat(beat.price).toFixed(2).replace('.', ',') %></span>
-                                    <button class="btn-icon play-beat-btn" aria-label="Ouvir Beat" data-audio-url="<%= beat.audioUrl %>">
+                                    
+                                    <button class="btn-icon play-beat-btn" aria-label="Ouvir Beat" 
+                                            data-beat-id="<%= beat.id %>" 
+                                            data-beat-title="<%= beat.title || beat.Title %>" 
+                                            data-beat-artist="<%= beat.artist || beat.ArtistName %>">
                                         <i class="fas fa-play"></i>
                                     </button>
+                                    
                                     <button class="btn btn-primary add-to-cart-btn"
                                             data-id="<%= beat.id %>"
-                                            data-title="<%= beat.title %>"
-                                            data-artist="<%= beat.artist %>"
-                                            data-price="<%= beat.price %>"
-                                            data-cover="<%= beat.cover %>">
+                                            data-title="<%= beat.title || beat.Title %>"
+                                            data-artist="<%= beat.artist || beat.ArtistName %>"
+                                            data-price="<%= parseFloat(beat.price).toFixed(2) %>"
+                                            data-cover="<%= beat.cover || beat.CoverImageURL %>">
                                         Adicionar ao Carrinho
                                     </button>
                                 </div>
@@ -64,17 +71,22 @@
                                 <h3><%= beat.title %></h3>
                                 <p class="artist"><%= beat.artist %></p>
                                 <div class="beat-actions">
+                                    
                                     <span class="price">R$<%= parseFloat(beat.price).toFixed(2).replace('.', ',') %></span>
                                     
-                                    <button class="btn-icon play-beat-btn" aria-label="Ouvir Beat" data-audio-url="<%= beat.audioUrl %>">
+                                    <button class="btn-icon play-beat-btn" aria-label="Ouvir Beat" 
+                                            data-beat-id="<%= beat.id %>" 
+                                            data-beat-title="<%= beat.title || beat.Title %>" 
+                                            data-beat-artist="<%= beat.artist || beat.ArtistName %>">
                                         <i class="fas fa-play"></i>
                                     </button>
+                                    
                                     <button class="btn btn-primary add-to-cart-btn"
                                             data-id="<%= beat.id %>"
-                                            data-title="<%= beat.title %>"
-                                            data-artist="<%= beat.artist %>"
-                                            data-price="<%= beat.price %>"
-                                            data-cover="<%= beat.cover %>">
+                                            data-title="<%= beat.title || beat.Title %>"
+                                            data-artist="<%= beat.artist || beat.ArtistName %>"
+                                            data-price="<%= parseFloat(beat.price).toFixed(2) %>"
+                                            data-cover="<%= beat.cover || beat.CoverImageURL %>">
                                         Adicionar ao Carrinho
                                     </button>
                                 </div>
@@ -91,12 +103,21 @@
             <p>&copy; 2025 TROBeats. Todos os direitos reservados.</p>
         </div>
     </footer>
-
     
+    <!-- Player de Áudio Melhorado -->
     <div class="audio-player-container">
-        <audio id="audioPlayer" controls></audio>
-        <div class="current-playing-info">
-            Tocando: <span id="currentBeatTitle">Nenhum beat</span>
+        <audio id="audioPlayer" src="" preload="metadata"></audio>
+        <div class="player-controls">
+            <button id="playPauseBtn"><i class="fas fa-play"></i></button>
+        </div>
+        <div class="progress-bar-container">
+            <div class="beat-info-display">
+                <span id="playerBeatTitle">Nenhum beat</span>
+                <span id="playerBeatArtist"></span>
+            </div>
+            <div class="progress-bar">
+                <div id="progress"></div>
+            </div>
         </div>
     </div>
 

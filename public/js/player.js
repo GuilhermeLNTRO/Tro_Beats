@@ -1,93 +1,94 @@
 document.addEventListener('DOMContentLoaded', () => {
     const audioPlayer = document.getElementById('audioPlayer');
-    const playButtons = document.querySelectorAll('.play-beat-btn'); // Todos os botões de play/ouvir
-    const currentBeatTitleSpan = document.getElementById('currentBeatTitle');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playPauseIcon = playPauseBtn.querySelector('i');
+    const progressBar = document.getElementById('progress');
+    const playerBeatTitle = document.getElementById('playerBeatTitle');
+    const playerBeatArtist = document.getElementById('playerBeatArtist');
+    const cardPlayButtons = document.querySelectorAll('.play-beat-btn');
+    
+    let currentPlayingButton = null;
 
-    let currentPlayingButton = null; // Para controlar qual botão está ativo (play/pause)
+    const togglePlayPause = (button) => {
+        // Assume que o data-audio-url agora contém o BeatID completo, que é o nome do arquivo.
+        // O app.js usará este ID para construir a URL protegida /play-beat/:beatId
+        const beatId = button.dataset.beatId; 
+        const audioUrl = `/play-beat/${beatId}`; // Cria a URL segura
+        const beatTitle = button.dataset.beatTitle;
+        const beatArtist = button.dataset.beatArtist;
+        
+        // Verifica se a URL de áudio está sendo construída corretamente
+        if (!beatId) {
+             console.error("Erro: Botão de play sem 'data-beat-id'.");
+             return;
+        }
 
-    playButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const audioUrl = button.dataset.audioUrl;
-            const beatTitle = button.closest('.beat-card').querySelector('h3').textContent; // Pega o título do beat
-
-            // Se o mesmo beat estiver tocando e o botão for clicado, pausa/retoma
-            // Verifica se a URL atual do player é a mesma do botão clicado
-            if (audioPlayer.src === window.location.origin + audioUrl) {
-                if (audioPlayer.paused) {
-                    audioPlayer.play();
-                    // Atualiza o ícone do botão clicado para pause
-                    button.querySelector('i').classList.remove('fa-play');
-                    button.querySelector('i').classList.add('fa-pause');
-                } else {
-                    audioPlayer.pause();
-                    // Atualiza o ícone do botão clicado para play
-                    button.querySelector('i').classList.remove('fa-pause');
-                    button.querySelector('i').classList.add('fa-play');
-                }
+        // Se o mesmo beat estiver tocando
+        if (audioPlayer.src === window.location.origin + audioUrl) {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playPauseIcon.classList.replace('fa-play', 'fa-pause');
+                button.querySelector('i').classList.replace('fa-play', 'fa-pause');
             } else {
-                // Se um beat diferente for clicado, para o anterior e toca o novo
-                // Reseta o ícone do botão anterior (se houver)
-                if (currentPlayingButton && currentPlayingButton !== button) {
-                    currentPlayingButton.querySelector('i').classList.remove('fa-pause');
-                    currentPlayingButton.querySelector('i').classList.add('fa-play');
-                }
-
-                audioPlayer.src = audioUrl;
-                audioPlayer.play()
-                    .catch(error => {
-                        // Captura erros de autoplay (navegadores podem bloquear)
-                        console.error('Erro ao tentar tocar o áudio (autoplay bloqueado?):', error);
-                        alert('O navegador bloqueou a reprodução automática. Por favor, interaja com a página ou clique novamente.');
-                        // Reseta o ícone se o play falhar
-                        button.querySelector('i').classList.remove('fa-pause');
-                        button.querySelector('i').classList.add('fa-play');
-                    });
-
-                // Atualiza o ícone do botão atual para pause
-                button.querySelector('i').classList.remove('fa-play');
-                button.querySelector('i').classList.add('fa-pause');
-                
-                currentBeatTitleSpan.textContent = beatTitle; // Atualiza o título tocando
-                currentPlayingButton = button; // Armazena o botão que está tocando
+                audioPlayer.pause();
+                playPauseIcon.classList.replace('fa-pause', 'fa-play');
+                button.querySelector('i').classList.replace('fa-pause', 'fa-play');
             }
+        } else {
+            // Se um beat diferente for clicado
+            if (currentPlayingButton) {
+                currentPlayingButton.querySelector('i').classList.replace('fa-pause', 'fa-play');
+            }
+
+            audioPlayer.src = audioUrl; // Define a nova URL segura
+            audioPlayer.play();
+            playerBeatTitle.textContent = beatTitle;
+            playerBeatArtist.textContent = beatArtist;
+
+            playPauseIcon.classList.replace('fa-play', 'fa-pause');
+            button.querySelector('i').classList.replace('fa-play', 'fa-pause');
+            
+            currentPlayingButton = button;
+        }
+    };
+
+    // Event listener para os botões dos cards
+    cardPlayButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            togglePlayPause(button);
         });
     });
 
-    // Event listener para quando a música termina
+    // Event listener para o botão de play/pause do player fixo
+    playPauseBtn.addEventListener('click', () => {
+        if (currentPlayingButton) {
+            togglePlayPause(currentPlayingButton);
+        } else if (audioPlayer.src) {
+            audioPlayer.paused ? audioPlayer.play() : audioPlayer.pause();
+             // Sincroniza o ícone do player fixo
+            if (audioPlayer.paused) {
+                playPauseIcon.classList.replace('fa-pause', 'fa-play');
+            } else {
+                playPauseIcon.classList.replace('fa-play', 'fa-pause');
+            }
+        }
+    });
+
+    // Atualiza a barra de progresso
+    audioPlayer.addEventListener('timeupdate', () => {
+        const progressPercent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+        progressBar.style.width = `${progressPercent}%`;
+    });
+
+    // Reseta o player quando a música termina
     audioPlayer.addEventListener('ended', () => {
+        playPauseIcon.classList.replace('fa-pause', 'fa-play');
         if (currentPlayingButton) {
-            // Reseta o ícone do botão para play
-            currentPlayingButton.querySelector('i').classList.remove('fa-pause');
-            currentPlayingButton.querySelector('i').classList.add('fa-play');
-            currentPlayingButton = null;
+             currentPlayingButton.querySelector('i').classList.replace('fa-pause', 'fa-play');
         }
-        currentBeatTitleSpan.textContent = 'Nenhum beat'; // Reseta o título
-    });
-
-    // Event listener para quando o player é pausado via controles nativos
-    audioPlayer.addEventListener('pause', () => {
-        if (currentPlayingButton) {
-            currentPlayingButton.querySelector('i').classList.remove('fa-pause');
-            currentPlayingButton.querySelector('i').classList.add('fa-play');
-        }
-    });
-
-    // Event listener para quando o player é iniciado via controles nativos (se for o caso)
-    audioPlayer.addEventListener('play', () => {
-        // Se um novo play começa (e não é uma retomada), resetar outros botões
-        playButtons.forEach(button => {
-            const buttonAudioUrl = button.dataset.audioUrl;
-            // Verifica se a URL do player corresponde à URL de áudio deste botão
-            if (audioPlayer.src.includes(buttonAudioUrl) && currentPlayingButton !== button) {
-                if (currentPlayingButton) {
-                    currentPlayingButton.querySelector('i').classList.remove('fa-pause');
-                    currentPlayingButton.querySelector('i').classList.add('fa-play');
-                }
-                button.querySelector('i').classList.remove('fa-play');
-                button.querySelector('i').classList.add('fa-pause');
-                currentPlayingButton = button;
-                currentBeatTitleSpan.textContent = button.closest('.beat-card').querySelector('h3').textContent;
-            }
-        });
+        currentPlayingButton = null;
+        progressBar.style.width = '0%';
+        playerBeatTitle.textContent = 'Nenhum beat';
+        playerBeatArtist.textContent = '';
     });
 });
