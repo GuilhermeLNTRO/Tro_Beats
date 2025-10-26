@@ -46,7 +46,7 @@ const storage = multer.diskStorage({
 });
 
 // Define o middleware de upload para aceitar 1 imagem e 1 áudio
-const upload = multer({ 
+const uploadMulter = multer({ 
     storage: storage,
     fileFilter: (req, file, cb) => {
         if (file.fieldname === 'cover_image' && !file.mimetype.startsWith('image/')) {
@@ -78,6 +78,7 @@ async function initializeDatabase() {
     console.log('Conectado ao SQLite com sucesso!');
 
     // 1. Criação das Tabelas (Estrutura completa)
+    // CORRIGIDO: Certificando-se de que a tabela Beats TEM APENAS AS COLUNAS CORRETAS.
     await run(`
         CREATE TABLE IF NOT EXISTS Users (
             UserID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,6 +101,7 @@ async function initializeDatabase() {
             Price REAL NOT NULL,
             CoverImageURL TEXT,
             AudioFileURL TEXT NOT NULL,
+            IsBeatmaker INTEGER NOT NULL DEFAULT 0,
             Status TEXT NOT NULL DEFAULT 'À Venda',
             SalesCount INTEGER NOT NULL DEFAULT 0,
             IsFeatured INTEGER NOT NULL DEFAULT 0,
@@ -167,11 +169,13 @@ async function initializeDatabase() {
 // Inicializa o banco de dados antes de iniciar o servidor
 initializeDatabase().catch(err => {
     console.error('Falha ao inicializar o banco de dados:', err);
-    // Remove o arquivo de banco de dados para evitar o erro se a estrutura estiver corrompida
+    // Este bloco tenta remover o arquivo, mas é bloqueado pelo EBUSY.
+    // O erro será resolvido após a exclusão manual do ficheiro.
     if (err.code === 'SQLITE_ERROR') {
         if (fs.existsSync(path.join(__dirname, 'trobeats_database.sqlite'))) {
-            fs.unlinkSync(path.join(__dirname, 'trobeats_database.sqlite'));
-            console.log('Banco de dados corrompido removido. Por favor, reinicie o servidor.');
+            // Este comando está a falhar devido ao EBUSY.
+            // fs.unlinkSync(path.join(__dirname, 'trobeats_database.sqlite')); 
+            console.log('O ficheiro DB está bloqueado. Por favor, remova o ficheiro "trobeats_database.sqlite" manualmente e reinicie o servidor.');
         } else {
             console.log('Banco de dados não encontrado ou falhou ao criar. Verifique permissões.');
         }
@@ -429,6 +433,23 @@ app.get('/payment-success', async (req, res) => {
 
 
 // --- ROTAS DA APLICAÇÃO (AJUSTADAS PARA UPLOAD) ---
+const upload = multer({ 
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+        if (file.fieldname === 'cover_image' && !file.mimetype.startsWith('image/')) {
+            req.fileValidationError = 'A Capa deve ser um arquivo de imagem!';
+            return cb(null, false);
+        }
+        if (file.fieldname === 'audio_file' && !file.mimetype.startsWith('audio/')) {
+            req.fileValidationError = 'O Beat deve ser um arquivo de áudio (MP3)!';
+            return cb(null, false);
+        }
+        cb(null, true);
+    }
+}).fields([
+    { name: 'cover_image', maxCount: 1 },
+    { name: 'audio_file', maxCount: 1 }
+]);
 
 app.get('/', async (req, res) => {
     try {
@@ -794,7 +815,8 @@ app.post('/api/beats', upload, async (req, res) => {
         
         res.status(201).json({ message: 'Beat adicionado com sucesso!', beatId: newBeatId });
     } catch (err) {
-        console.error('Erro ao adicionar beat:', err);
+        console.error('Erro ao adicionar beat:', err)
+        ;
         // Em caso de erro no DB, tentamos limpar os arquivos enviados
         if (req.files.cover_image) fs.unlinkSync(req.files.cover_image[0].path);
         if (req.files.audio_file) fs.unlinkSync(req.files.audio_file[0].path);
@@ -802,7 +824,7 @@ app.post('/api/beats', upload, async (req, res) => {
     }
 });
 
-app.put('/api/beats/:id', upload, async (req, res) => { // Adicionando o middleware upload aqui!
+app.put('/api/beats/:id', uploadMulter, async (req, res) => { // Adicionando o middleware upload aqui!
     const currentUser = req.isAuthenticated() ? req.user : req.session.user;
     if (!currentUser || currentUser.isBeatmaker !== 1) {
         return res.status(403).json({ message: 'Não autorizado. Você precisa ser um beatmaker para editar beats.' });
@@ -957,4 +979,5 @@ app.listen(PORT, () => {
     console.log(`Acesse o carrinho de exemplo em: http://localhost:${PORT}/carrinho`);
     console.log(`Acesse o perfil de exemplo (beatmaker) em: http://localhost:${PORT}/perfil`);
     console.log(`Acesse as transações de exemplo em: http://localhost:${PORT}/meus-negocios`);
+
 });
