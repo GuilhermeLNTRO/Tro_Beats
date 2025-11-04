@@ -10,6 +10,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const multer = require('multer'); // Importa o Multer
 
 const app = express();
+// CORRIGIDO: Removido o 'env' duplicado de process.env.PORT
 const PORT = process.env.PORT || 3000;
 
 let db; // Variável global para o banco de dados
@@ -46,7 +47,8 @@ const storage = multer.diskStorage({
 });
 
 // Define o middleware de upload para aceitar 1 imagem e 1 áudio
-const uploadMulter = multer({ 
+// ESTA É A ÚNICA DECLARAÇÃO DE 'upload'
+const upload = multer({ 
     storage: storage,
     fileFilter: (req, file, cb) => {
         if (file.fieldname === 'cover_image' && !file.mimetype.startsWith('image/')) {
@@ -78,7 +80,6 @@ async function initializeDatabase() {
     console.log('Conectado ao SQLite com sucesso!');
 
     // 1. Criação das Tabelas (Estrutura completa)
-    // CORRIGIDO: Certificando-se de que a tabela Beats TEM APENAS AS COLUNAS CORRETAS.
     await run(`
         CREATE TABLE IF NOT EXISTS Users (
             UserID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,7 +102,6 @@ async function initializeDatabase() {
             Price REAL NOT NULL,
             CoverImageURL TEXT,
             AudioFileURL TEXT NOT NULL,
-            IsBeatmaker INTEGER NOT NULL DEFAULT 0,
             Status TEXT NOT NULL DEFAULT 'À Venda',
             SalesCount INTEGER NOT NULL DEFAULT 0,
             IsFeatured INTEGER NOT NULL DEFAULT 0,
@@ -151,6 +151,7 @@ async function initializeDatabase() {
 
     const beat1Exists = await db.get("SELECT BeatID FROM Beats WHERE BeatID = 'beat1'");
     if (!beat1Exists) {
+        // CORRIGIDO: Garantindo 11 colunas e 11 valores
         await run(`
             INSERT INTO Beats (BeatID, Title, ArtistName, Price, CoverImageURL, AudioFileURL, Status, IsFeatured, UploadedByUserID, Genre, SalesCount)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -159,8 +160,9 @@ async function initializeDatabase() {
     
     const beat2Exists = await db.get("SELECT BeatID FROM Beats WHERE BeatID = 'beat2'");
     if (!beat2Exists) {
+        // CORRIGIDO: Trocado 'IsBeatmaker' por 'IsFeatured'
         await run(`
-            INSERT INTO Beats (BeatID, Title, ArtistName, Price, CoverImageURL, AudioFileURL, Status, IsBeatmaker, UploadedByUserID, Genre, SalesCount)
+            INSERT INTO Beats (BeatID, Title, ArtistName, Price, CoverImageURL, AudioFileURL, Status, IsFeatured, UploadedByUserID, Genre, SalesCount)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, ['beat2', 'Drip Swag', 'Lil.Nego', 65.00, '/img/beat-covers/cover2.jpg', 'beat2.mp3', 'À Venda', 0, userID.UserID, 'Drill', 0]);
     }
@@ -327,53 +329,128 @@ app.post('/auth/confirm-role', async (req, res) => {
     }
 });
 
-// --- ROTAS DE COMPRAS E CHECKOUT (NOVAS) ---
 
-// Rota 6: Inicia o processo de Checkout/Pagamento
-app.post('/checkout', async (req, res) => {
+// --- LÓGICA AUXILIAR DE COMPRAS ---
+
+// Função para calcular o total do carrinho
+async function calculateCartTotal(cartItems) {
+    if (!cartItems || cartItems.length === 0) return 0;
+
+    let total = 0;
+    const beatIds = cartItems.map(item => `'${item.id}'`).join(',');
+    
+    // Buscar os preços no DB para evitar fraude de preço no cliente
+    const dbBeats = await db.all(`SELECT BeatID as id, Price as price FROM Beats WHERE BeatID IN (${beatIds})`);
+    const beatMap = new Map(dbBeats.map(beat => [beat.id, beat]));
+
+    for (const item of cartItems) {
+        const beatDetails = beatMap.get(item.id);
+        if (!beatDetails) continue; 
+        total += beatDetails.price * (item.quantity || 1);
+    }
+    return total;
+}
+
+// --- ROTAS DE COMPRAS E CHECKOUT (AJUSTADAS) ---
+
+// Rota 1: Exibe o Carrinho (views/cart.ejs) - Página de Revisão
+app.get('/carrinho', async (req, res) => {
+    let cartItems = [];
+    let totalAmount = 0;
+
+    if (req.session.cart && req.session.cart.length > 0) {
+        try {
+            const beatIds = req.session.cart.map(item => `'${item.id}'`).join(',');
+            
+            if (beatIds) {
+                const beatsInCartResult = await db.all(`
+                    SELECT BeatID as id, Title, ArtistName as artist, Price as price, CoverImageURL as cover
+                    FROM Beats
+                    WHERE BeatID IN (${beatIds})
+                `);
+                const beatsMap = new Map(beatsInCartResult.map(beat => [beat.id, beat]));
+
+                cartItems = req.session.cart.map(sessionItem => {
+                    const dbBeat = beatsMap.get(sessionItem.id);
+                    // Garante que o item existe no DB antes de adicionar ao array final
+                    return dbBeat ? { ...dbBeat, quantity: sessionItem.quantity } : null;
+                }).filter(item => item !== null);
+            }
+            
+            totalAmount = await calculateCartTotal(cartItems);
+
+        } catch (err) {
+            console.error('Erro ao buscar detalhes de beats para o carrinho:', err);
+            totalAmount = 0;
+        }
+    }
+    
+    const currentUser = req.isAuthenticated() ? req.user : req.session.user;
+
+    res.render('cart', { 
+        cartItems: cartItems, 
+        totalAmount: totalAmount,
+        userEmail: currentUser ? currentUser.email : null // Para exibir na lateral
+    });
+});
+
+// Rota 2: Exibe a Página de Checkout (views/checkout.ejs) - Página de Confirmação
+app.get('/checkout', async (req, res) => {
+    const currentUser = req.isAuthenticated() ? req.user : req.session.user;
+
+    if (!currentUser) {
+        // Redireciona para login se não estiver autenticado
+        return res.redirect('/login?returnTo=/checkout');
+    }
+
+    if (!req.session.cart || req.session.cart.length === 0) {
+        return res.redirect('/carrinho');
+    }
+
+    try {
+        // Recalculamos o total aqui para garantir a segurança no último passo
+        const totalAmount = await calculateCartTotal(req.session.cart);
+        
+        // Passa o total e os itens do carrinho (ainda não detalhados, mas o total é o foco)
+        res.render('checkout', {
+            totalAmount: totalAmount,
+            cartItems: req.session.cart, // Itens brutos da sessão
+            userEmail: currentUser.email,
+            userName: currentUser.username || currentUser.email.split('@')[0] // Fallback
+        });
+    } catch (err) {
+        console.error('Erro ao preparar a página de checkout:', err);
+        res.status(500).send('Erro interno ao carregar o checkout.');
+    }
+});
+
+
+// Rota 3: Inicia o Pagamento Kiwify (POST) - Disparado pelo botão final
+app.post('/finalizar-compra', async (req, res) => {
     const currentUser = req.isAuthenticated() ? req.user : req.session.user;
 
     if (!currentUser) {
         return res.status(401).json({ message: 'Você precisa estar logado para finalizar a compra.' });
     }
-
+    
     if (!req.session.cart || req.session.cart.length === 0) {
         return res.status(400).json({ message: 'O carrinho está vazio.' });
     }
 
-    let totalAmount = 0;
-    const cartItems = req.session.cart;
-
     try {
-        // Validação e cálculo do total (obter preços frescos do DB)
-        const beatIds = cartItems.map(item => `'${item.id}'`).join(',');
-        const dbBeats = await db.all(`SELECT BeatID as id, Price as price, UploadedByUserID FROM Beats WHERE BeatID IN (${beatIds})`);
+        // Revalida e calcula o total uma última vez
+        const totalAmount = await calculateCartTotal(req.session.cart);
         
-        if (dbBeats.length !== cartItems.length) {
-            return res.status(400).json({ message: 'Um ou mais beats no carrinho não são válidos.' });
-        }
-
-        const beatMap = new Map(dbBeats.map(beat => [beat.id, beat]));
-
-        for (const item of cartItems) {
-            const beatDetails = beatMap.get(item.id);
-            if (!beatDetails) continue; 
-            totalAmount += beatDetails.price * (item.quantity || 1);
-        }
-
-        // 1. Criação do OrderToken (ID ÚNICO para rastrear o pedido)
         const orderToken = `ORDER_${Date.now()}_${currentUser.UserID}`;
         
-        // 2. Salvamos os detalhes da transação para uso na rota de sucesso do Webhook (simulada na sessão)
         req.session.pendingOrder = {
             orderToken: orderToken,
-            items: cartItems,
+            items: req.session.cart,
             total: totalAmount,
             userId: currentUser.UserID
         };
 
-        // 3. Constrói a URL de redirecionamento para a Kiwify
-        const redirectUrl = `${KIWIFY_CHECKOUT_BASE_URL}?ref=${orderToken}&total=${totalAmount.toFixed(2)}`;
+        const redirectUrl = `${KIWIFY_CHECKOUT_BASE_URL}?ref=${orderToken}&email=${currentUser.email}&total=${totalAmount.toFixed(2)}`;
 
         res.json({ success: true, redirectUrl: redirectUrl });
 
@@ -383,8 +460,11 @@ app.post('/checkout', async (req, res) => {
     }
 });
 
-// Rota 7: Webhook Simulado de Sucesso de Pagamento (Rota de Retorno da Kiwify)
+// Rota 7: Sucesso de Pagamento (Rota de Retorno do Gateway)
+// O Gateway externo chama esta URL após o pagamento ser efetuado.
 app.get('/payment-success', async (req, res) => {
+    // Em um ambiente real, você validaria o token de pagamento aqui.
+    // Para simulação, usamos o token e o pedido pendente na sessão.
     const orderToken = req.query.token;
     const pendingOrder = req.session.pendingOrder;
 
@@ -396,9 +476,12 @@ app.get('/payment-success', async (req, res) => {
         const { items, total, userId } = pendingOrder;
         const buyerUsername = (req.user && req.user.username) || 'Convidado';
 
+        const purchasedBeatsDetails = []; // Array para guardar os detalhes dos beats comprados
+
         // 1. Processar cada item do carrinho como compra e venda
         for (const item of items) {
-            const beatDetails = await db.get(`SELECT UploadedByUserID, ArtistName FROM Beats WHERE BeatID = ?`, [item.id]);
+            // Busca todos os detalhes do beat (incluindo o nome do ficheiro de áudio)
+            const beatDetails = await db.get(`SELECT UploadedByUserID, ArtistName, AudioFileURL, Title FROM Beats WHERE BeatID = ?`, [item.id]);
             
             if (beatDetails) {
                 // Registrar Compra (para o comprador)
@@ -415,6 +498,12 @@ app.get('/payment-success', async (req, res) => {
                 
                 // Atualizar contagem de vendas do beat
                 await db.run(`UPDATE Beats SET SalesCount = SalesCount + 1 WHERE BeatID = ?`, [item.id]);
+
+                // Adiciona os detalhes ao array para exibir na página de sucesso
+                purchasedBeatsDetails.push({
+                    title: beatDetails.Title,
+                    audioFile: beatDetails.AudioFileURL // O nome do ficheiro (ex: beat1.mp3)
+                });
             }
         }
 
@@ -422,8 +511,11 @@ app.get('/payment-success', async (req, res) => {
         req.session.cart = [];
         delete req.session.pendingOrder;
 
-        // 3. Renderizar a tela de sucesso
-        res.render('payment-success', { total: total.toFixed(2), items: items.length });
+        // 3. Renderizar a tela de sucesso, passando os detalhes dos beats comprados
+        res.render('payment-success', { 
+            total: total.toFixed(2), 
+            purchasedBeats: purchasedBeatsDetails // Envia a lista de beats para o EJS
+        });
 
     } catch (err) {
         console.error('Erro ao finalizar transação:', err);
@@ -431,25 +523,7 @@ app.get('/payment-success', async (req, res) => {
     }
 });
 
-
-// --- ROTAS DA APLICAÇÃO (AJUSTADAS PARA UPLOAD) ---
-const upload = multer({ 
-    storage: storage,
-    fileFilter: (req, file, cb) => {
-        if (file.fieldname === 'cover_image' && !file.mimetype.startsWith('image/')) {
-            req.fileValidationError = 'A Capa deve ser um arquivo de imagem!';
-            return cb(null, false);
-        }
-        if (file.fieldname === 'audio_file' && !file.mimetype.startsWith('audio/')) {
-            req.fileValidationError = 'O Beat deve ser um arquivo de áudio (MP3)!';
-            return cb(null, false);
-        }
-        cb(null, true);
-    }
-}).fields([
-    { name: 'cover_image', maxCount: 1 },
-    { name: 'audio_file', maxCount: 1 }
-]);
+// --- ROTAS DA APLICAÇÃO ---
 
 app.get('/', async (req, res) => {
     try {
@@ -579,47 +653,7 @@ app.get('/perfil', async (req, res) => {
     }
 });
 
-app.get('/carrinho', async (req, res) => {
-    let cartItems = [];
-    if (req.session.cart && req.session.cart.length > 0) {
-        try {
-            const beatIds = req.session.cart.map(item => `'${item.id}'`).join(',');
-            
-            if (beatIds) {
-                const beatsInCartResult = await db.all(`
-                    SELECT BeatID as id, Title, ArtistName as artist, Price as price, CoverImageURL as cover
-                    FROM Beats
-                    WHERE BeatID IN (${beatIds})
-                `);
-                const beatsMap = new Map(beatsInCartResult.map(beat => [beat.id, beat]));
-
-                cartItems = req.session.cart.map(sessionItem => {
-                    const dbBeat = beatsMap.get(sessionItem.id);
-                    return dbBeat ? { ...dbBeat, quantity: sessionItem.quantity } : null;
-                }).filter(item => item !== null);
-            }
-        } catch (err) {
-            console.error('Erro ao buscar detalhes de beats para o carrinho:', err);
-        }
-    }
-    res.render('cart', { cartItems: cartItems });
-});
-
-app.delete('/carrinho/remover/:id', (req, res) => {
-    const itemIdToRemove = req.params.id;
-    let cart = req.session.cart || [];
-    const initialCartLength = cart.length;
-
-    cart = cart.filter(item => String(item.id) !== String(itemIdToRemove));
-
-    if (cart.length < initialCartLength) {
-        req.session.cart = cart;
-        res.status(200).json({ message: 'Item removido com sucesso!' });
-    } else {
-        res.status(404).json({ message: 'Item não encontrado no carrinho.' });
-    }
-});
-
+// Rota para adicionar item ao carrinho
 app.post('/carrinho/adicionar', async (req, res) => {
     const { id, title, artist, price, cover } = req.body;
 
@@ -640,6 +674,23 @@ app.post('/carrinho/adicionar', async (req, res) => {
 
     res.status(200).json({ message: 'Item adicionado ao carrinho com sucesso!', cartCount: cart.length });
 });
+
+// Rota para remover item do carrinho
+app.delete('/carrinho/remover/:id', (req, res) => {
+    const itemIdToRemove = req.params.id;
+    let cart = req.session.cart || [];
+    const initialCartLength = cart.length;
+
+    cart = cart.filter(item => String(item.id) !== String(itemIdToRemove));
+
+    if (cart.length < initialCartLength) {
+        req.session.cart = cart;
+        res.status(200).json({ message: 'Item removido com sucesso!' });
+    } else {
+        res.status(404).json({ message: 'Item não encontrado no carrinho.' });
+    }
+});
+
 
 app.get('/vender', (req, res) => {
     const currentUser = req.isAuthenticated() ? req.user : req.session.user;
@@ -815,8 +866,7 @@ app.post('/api/beats', upload, async (req, res) => {
         
         res.status(201).json({ message: 'Beat adicionado com sucesso!', beatId: newBeatId });
     } catch (err) {
-        console.error('Erro ao adicionar beat:', err)
-        ;
+        console.error('Erro ao adicionar beat:', err);
         // Em caso de erro no DB, tentamos limpar os arquivos enviados
         if (req.files.cover_image) fs.unlinkSync(req.files.cover_image[0].path);
         if (req.files.audio_file) fs.unlinkSync(req.files.audio_file[0].path);
@@ -824,7 +874,7 @@ app.post('/api/beats', upload, async (req, res) => {
     }
 });
 
-app.put('/api/beats/:id', uploadMulter, async (req, res) => { // Adicionando o middleware upload aqui!
+app.put('/api/beats/:id', upload, async (req, res) => { // Adicionando o middleware upload aqui!
     const currentUser = req.isAuthenticated() ? req.user : req.session.user;
     if (!currentUser || currentUser.isBeatmaker !== 1) {
         return res.status(403).json({ message: 'Não autorizado. Você precisa ser um beatmaker para editar beats.' });
@@ -979,5 +1029,4 @@ app.listen(PORT, () => {
     console.log(`Acesse o carrinho de exemplo em: http://localhost:${PORT}/carrinho`);
     console.log(`Acesse o perfil de exemplo (beatmaker) em: http://localhost:${PORT}/perfil`);
     console.log(`Acesse as transações de exemplo em: http://localhost:${PORT}/meus-negocios`);
-
 });

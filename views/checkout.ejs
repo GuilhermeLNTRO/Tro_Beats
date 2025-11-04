@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra - TROBeats</title>
+    
+    <!-- CSS Padrão do Projeto -->
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- REMOVIDO o <style> inline e o Tailwind. Usando apenas style.css -->
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <a href="/" aria-label="Página Inicial"> <h1>TROBeats</h1> </a>
+            </div>
+             <div class="header-actions">
+                <a href="/carrinho" class="cart-icon" aria-label="Voltar ao Carrinho"><i class="fas fa-shopping-cart"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content section-padding">
+        <!-- 
+            Utilizando as classes .form-container e .profile-details 
+            do seu style.css para manter a consistência.
+        -->
+        <div class="container">
+            <div class="form-container" style="max-width: 550px;"> <!-- Classe do style.css -->
+                
+                <h2 style="color: var(--primary-purple); margin-bottom: 25px; text-align: center; font-size: 28px;">
+                    Confirmação de Pedido
+                </h2>
+                
+                <!-- Detalhes do Comprador (Estilo .profile-details) -->
+                <div class="profile-details" style="margin-bottom: 20px; text-align: left;">
+                    <h4><i class="fas fa-user" style="margin-right: 0.5rem;"></i> Comprador</h4>
+                    <p>Nome: <%= userName %></p>
+                    <p>Email: <%= userEmail %></p>
+                </div>
+
+                <!-- Itens (Estilo .profile-details) -->
+                <div class="profile-details" style="margin-bottom: 20px; text-align: left;">
+                    <h4><i class="fas fa-receipt" style="margin-right: 0.5rem;"></i> Itens (<%= cartItems.length %>)</h4>
+                    <ul style="list-style: disc; padding-left: 20px;">
+                        <% cartItems.forEach(item => { %>
+                            <li><%= item.title %> (R$<%= item.price.toFixed(2).replace('.', ',') %>)</li>
+                        <% }); %>
+                    </ul>
+                </div>
+
+                <!-- Resumo Final e Ação -->
+                <div class="final-summary" style="border-top: 1px solid var(--border-gray); padding-top: 20px;">
+                    
+                    <div class="total-row" style="display: flex; justify-content: space-between; align-items: center; font-size: 1.5rem; font-weight: 700; margin-bottom: 20px;">
+                        <span>TOTAL GERAL:</span>
+                        <span style="color: var(--primary-purple);">R$<%= totalAmount.toFixed(2).replace('.', ',') %></span>
+                    </div>
+                    
+                    <p class="secure-note" style="font-size: 0.9rem; color: #aaa; margin-bottom: 20px; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--alert-success);"></i> Ao clicar em "Pagar", você será redirecionado para a plataforma segura da Kiwify.
+                    </p>
+
+                    <!-- Botão usando classes .btn e .btn-primary do style.css -->
+                    <button id="finalPaymentBtn" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
+                        <i class="fas fa-credit-card"></i> Pagar R$<%= totalAmount.toFixed(2).replace('.', ',') %>
+                    </button>
+                </div>
+                
+                <p class="note-footer" style="font-size: 0.85rem; text-align: center; color: #888; margin-top: 20px;">
+                    Seu pedido está pendente. A transação será finalizada após a confirmação do pagamento.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 TROBeats. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+    
+    <!-- Chamada da lógica de checkout (Apenas para o botão final) -->
+    <script src="/js/checkout-logic.js"></script>
+</body>
+</html>
+

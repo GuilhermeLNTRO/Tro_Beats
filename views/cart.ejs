@@ -3,86 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TROBeats - Carrinho</title>
+    <title>Carrinho de Compras - TROBeats</title>
+    
+    <!-- CSS Padrão do Projeto (Onde estão as suas classes) -->
     <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <header class="header">
         <div class="container header-content">
             <div class="logo">
-                <a href="/" aria-label="Página Inicial"> <h1>TROBeats</h1>
-                </a>
+                <a href="/" aria-label="Página Inicial"> <h1>TROBeats</h1> </a>
             </div>
             <div class="header-actions">
                 <a href="/perfil" class="user-icon" aria-label="Perfil do Usuário"><i class="fas fa-user-circle"></i></a>
-                <a href="/carrinho" class="cart-icon" aria-label="Carrinho de Compras"><i class="fas fa-shopping-cart"></i></a>
+                <a href="/logout" class="btn btn-secondary">Sair</a>
             </div>
         </div>
     </header>
 
-    <main class="main-content cart-page">
-        <section class="cart-section section-padding">
-            <div class="container">
-                <h2>Seu Carrinho de Compras</h2>
+    <main class="main-content section-padding">
+        <div class="container cart-page">
+            <h2 class="section-title">Meu Carrinho</h2>
 
-                <% if (cartItems && cartItems.length > 0) { %>
-                    <div class="cart-table-container">
-                        <table class="cart-table">
-                            <thead>
+            <% if (cartItems.length === 0) { %>
+                <div class="empty-message">
+                    <p>Seu carrinho está vazio.</p>
+                    <a href="/" class="btn btn-primary" style="margin-top: 20px;">Voltar para a Loja</a>
+                </div>
+            <% } else { %>
+                <div class="cart-table-container">
+                    <table class="cart-table">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Quantidade</th>
+                                <th>Subtotal</th>
+                                <th>Remover</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% cartItems.forEach(function(item) { %>
                                 <tr>
-                                    <th>Produto</th>
-                                    <th>Preço</th>
-                                    <th>Quantidade</th>
-                                    <th>Subtotal</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% let total = 0; %>
-                                <% cartItems.forEach(item => { %>
-                                    <% // Garante que price e quantity são números para evitar NaN %>
-                                    <% const itemPrice = parseFloat(item.price) || 0; %>
-                                    <% const itemQuantity = parseInt(item.quantity) || 0; %>
-                                    <% const subtotal = itemPrice * itemQuantity; %>
-                                    <% total += subtotal; %>
-                                    <tr data-item-id="<%= item.id %>">
-                                        <td>
-                                            <div class="cart-item-info">
-                                                <img src="<%= item.cover %>" alt="Capa do Beat: <%= item.title %>">
+                                    <td>
+                                        <div class="cart-item-info">
+                                            <img src="<%= item.cover %>" alt="Capa: <%= item.title %>">
+                                            <div>
                                                 <h3><%= item.title %></h3>
                                                 <p class="artist"><%= item.artist %></p>
                                             </div>
-                                        </td>
-                                        <td>R$<%= itemPrice.toFixed(2).replace('.', ',') %></td>
-                                        <td>
-                                            <span class="item-quantity"><%= itemQuantity %></span>
-                                        </td>
-                                        <td class="subtotal">R$<%= subtotal.toFixed(2).replace('.', ',') %></td>
-                                        <td>
-                                            <button class="btn-icon btn-remove" aria-label="Remover Item"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                <% }); %>
-                                <tr class="total-row">
-                                    <td colspan="3" class="total-label">Total:</td>
-                                    <td class="total-price">R$<%= total.toFixed(2).replace('.', ',') %></td>
-                                    <td></td>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <!-- Quantidade (simplificada para 1) -->
+                                        <span class="item-quantity"><%= item.quantity %></span>
+                                    </td>
+                                    <td>
+                                        <span class="subtotal">R$<%= (item.price * item.quantity).toFixed(2).replace('.', ',') %></span>
+                                    </td>
+                                    <td>
+                                        <!-- Botão de remover (usando classes do style.css) -->
+                                        <button class="btn-icon btn-remove delete-item-btn" data-id="<%= item.id %>" aria-label="Remover item">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
                                 </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                            <% }); %>
+                            
+                            <!-- Linha do Total (conforme style.css) -->
+                            <tr class="total-row">
+                                <td colspan="3" class="total-label">Total:</td>
+                                <td class="total-price">R$<%= totalAmount.toFixed(2).replace('.', ',') %></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                    <div class="cart-actions">
-                        <a href="/" class="btn btn-secondary">Continuar Comprando</a>
-                        <button class="btn btn-primary">Finalizar Compra</button>
-                    </div>
-                <% } else { %>
-                    <p class="empty-cart-message">Seu carrinho está vazio.</p>
-                    <a href="/" class="btn btn-secondary">Começar a Comprar</a>
-                <% } %>
-            </div>
-        </section>
+                <!-- Ações do Carrinho (conforme style.css) -->
+                <div class="cart-actions">
+                    <a href="/" class="btn btn-secondary">Continuar Comprando</a>
+                    <!-- Este botão agora leva para a página de checkout separada -->
+                    <a href="/checkout" class="btn btn-primary">Ir para Checkout</a>
+                </div>
+            <% } %>
+            
+        </div>
     </main>
 
     <footer class="footer">
@@ -90,7 +97,9 @@
             <p>&copy; 2025 TROBeats. Todos os direitos reservados.</p>
         </div>
     </footer>
-
-    <script src="/js/cart.js"></script> 
+    
+    <!-- Chamada ao ficheiro de lógica do carrinho (para remoção de itens) -->
+    <script src="/js/cart-logic.js"></script>
 </body>
 </html>
+
